@@ -16,9 +16,10 @@ class _IncidentListPageState extends State<IncidentListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Incidencias')),
-      body: StreamBuilder<List<IncidentModel>>(
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      color: colorScheme.background,
+      child: StreamBuilder<List<IncidentModel>>(
         stream: _incidentService.getIncidents(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -28,33 +29,78 @@ class _IncidentListPageState extends State<IncidentListPage> {
             return const Center(child: Text('Error al cargar incidencias'));
           }
           final incidents = snap.data ?? [];
-          return ListView.separated(
+          if (incidents.isEmpty) {
+            return Center(
+              child: Text(
+                'No hay incidencias registradas',
+                style: TextStyle(
+                  color: colorScheme.onBackground.withOpacity(0.6),
+                ),
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             itemCount: incidents.length,
-            separatorBuilder: (_, __) => const Divider(),
             itemBuilder: (ctx, i) {
               final inc = incidents[i];
-              return ListTile(
-                title: Text(inc.title),
-                subtitle: Text(
-                  'Estado: [4m${inc.status}[24m • ${DateFormat.yMd().add_Hm().format(inc.createdAt)}',
+              return Card(
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap:
-                    () => Navigator.pushNamed(
-                      ctx,
-                      AppRoutes.incidentDetail,
-                      arguments: inc,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 20,
+                  ),
+                  title: Text(
+                    inc.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.report_problem,
+                          size: 18,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Estado: ${inc.status}',
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          DateFormat.yMd().add_Hm().format(inc.createdAt),
+                          style: TextStyle(
+                            color: colorScheme.onBackground.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 28),
+                  onTap:
+                      () => Navigator.pushNamed(
+                        ctx,
+                        AppRoutes.incidentDetail,
+                        arguments: inc,
+                      ),
+                ),
               );
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_incident_list',
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.newIncident),
-        child: const Icon(Icons.add),
-        tooltip: 'Nueva incidencia',
       ),
     );
   }

@@ -28,9 +28,10 @@ class _ThreadListPageState extends State<ThreadListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Foros')),
-      body: RefreshIndicator(
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      color: colorScheme.background,
+      child: RefreshIndicator(
         onRefresh: _refresh,
         child: StreamBuilder<List<ThreadModel>>(
           stream: _threadsStream,
@@ -52,25 +53,57 @@ class _ThreadListPageState extends State<ThreadListPage> {
                 ),
               );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No hay hilos disponibles.'));
+              return Center(
+                child: Text(
+                  'No hay hilos disponibles.',
+                  style: TextStyle(
+                    color: colorScheme.onBackground.withOpacity(0.6),
+                  ),
+                ),
+              );
             }
             final threads = snapshot.data!;
-            return ListView.separated(
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               itemCount: threads.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final thread = threads[index];
-                return ListTile(
-                  title: Text(thread.title),
-                  subtitle: Text(timeago.format(thread.createdAt)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.chatMessages, // Changed from AppRoutes.chat
-                      arguments: thread,
-                    );
-                  },
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 20,
+                    ),
+                    title: Text(
+                      thread.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        timeago.format(thread.createdAt),
+                        style: TextStyle(
+                          color: colorScheme.onBackground.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 28),
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.chatMessages, // Changed from AppRoutes.chat
+                        arguments: thread,
+                      );
+                    },
+                  ),
                 );
               },
             );

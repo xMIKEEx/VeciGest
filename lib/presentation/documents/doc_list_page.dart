@@ -16,18 +16,10 @@ class _DocListPageState extends State<DocListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Documentos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.upload_file),
-            onPressed:
-                () => Navigator.pushNamed(context, AppRoutes.uploadDocument),
-          ),
-        ],
-      ),
-      body: StreamBuilder<List<DocumentModel>>(
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      color: colorScheme.background,
+      child: StreamBuilder<List<DocumentModel>>(
         stream: _documentService.getDocuments(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
@@ -37,22 +29,57 @@ class _DocListPageState extends State<DocListPage> {
             return const Center(child: Text('Error al cargar documentos'));
           }
           final docs = snap.data ?? [];
+          if (docs.isEmpty) {
+            return Center(
+              child: Text(
+                'No hay documentos disponibles',
+                style: TextStyle(
+                  color: colorScheme.onBackground.withOpacity(0.6),
+                ),
+              ),
+            );
+          }
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             itemCount: docs.length,
             itemBuilder: (ctx, i) {
               final doc = docs[i];
-              return ListTile(
-                leading: const Icon(Icons.insert_drive_file),
-                title: Text(doc.name),
-                subtitle: Text(
-                  DateFormat.yMd().add_Hm().format(doc.uploadedAt),
+              return Card(
+                elevation: 3,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                onTap:
-                    () => Navigator.pushNamed(
-                      ctx,
-                      AppRoutes.documentDetail,
-                      arguments: doc,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 20,
+                  ),
+                  leading: const Icon(Icons.insert_drive_file, size: 32),
+                  title: Text(
+                    doc.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      DateFormat.yMd().add_Hm().format(doc.uploadedAt),
+                      style: TextStyle(
+                        color: colorScheme.onBackground.withOpacity(0.6),
+                      ),
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 28),
+                  onTap:
+                      () => Navigator.pushNamed(
+                        ctx,
+                        AppRoutes.documentDetail,
+                        arguments: doc,
+                      ),
+                ),
               );
             },
           );

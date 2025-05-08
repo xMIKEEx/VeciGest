@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'package:vecigest/utils/routes.dart';
 import 'package:vecigest/utils/theme.dart';
 import 'firebase_options.dart';
@@ -12,7 +13,21 @@ void main() async {
   // Si no usas flutterfire_cli o firebase_options.dart, usa:
   // await Firebase.initializeApp();
   print('Firebase apps: ${Firebase.apps}');
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
+}
+
+class ThemeProvider extends ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode get themeMode => _themeMode;
+  void setTheme(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -20,13 +35,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'VeciGest',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      // themeMode: ThemeMode.system, // Opcional: para seguir el tema del sistema
-      initialRoute: AppRoutes.splash,
+      themeMode: themeProvider.themeMode,
+      initialRoute: AppRoutes.home, // Saltar login temporalmente
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }

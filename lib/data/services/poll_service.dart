@@ -91,18 +91,34 @@ class PollService {
     }
   }
 
-  // Votar por una opción
-  Future<void> vote(String pollId, String optionId) async {
+  // Saber si un usuario ya ha votado
+  Future<bool> hasUserVoted(String pollId, String userId) async {
+    final pollDoc = await _pollsRef.doc(pollId).get();
+    final data = pollDoc.data() as Map<String, dynamic>?;
+    if (data == null) return false;
+    final votedBy = (data['votedBy'] as List?)?.cast<String>() ?? [];
+    return votedBy.contains(userId);
+  }
+
+  // Votar por una opción (solo si no ha votado)
+  Future<bool> vote(String pollId, String optionId, String userId) async {
+    final pollRef = _pollsRef.doc(pollId);
+    final pollDoc = await pollRef.get();
+    final data = pollDoc.data() as Map<String, dynamic>?;
+    if (data == null) return false;
+    final votedBy = (data['votedBy'] as List?)?.cast<String>() ?? [];
+    if (votedBy.contains(userId)) return false;
     try {
-      final optionRef = _pollsRef
-          .doc(pollId)
-          .collection('options')
-          .doc(optionId);
+      final optionRef = pollRef.collection('options').doc(optionId);
       await _firestore.runTransaction((transaction) async {
         final snapshot = await transaction.get(optionRef);
         final currentVotes = (snapshot['votes'] ?? 0) as int;
         transaction.update(optionRef, {'votes': currentVotes + 1});
+        transaction.update(pollRef, {
+          'votedBy': FieldValue.arrayUnion([userId]),
+        });
       });
+      return true;
     } catch (e) {
       throw Exception('Error al votar: $e');
     }
