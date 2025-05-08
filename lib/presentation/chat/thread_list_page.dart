@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:vecigest/data/services/chat_service.dart';
 import 'package:vecigest/domain/models/thread_model.dart';
 import 'package:vecigest/utils/routes.dart';
@@ -29,15 +30,34 @@ class _ThreadListPageState extends State<ThreadListPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      color: colorScheme.background,
-      child: RefreshIndicator(
+    return Scaffold(
+      backgroundColor: colorScheme.background,
+      body: RefreshIndicator(
         onRefresh: _refresh,
         child: StreamBuilder<List<ThreadModel>>(
           stream: _threadsStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return ListView.builder(
+                itemCount: 6,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 12,
+                ),
+                itemBuilder:
+                    (_, __) => Shimmer.fromColors(
+                      baseColor: colorScheme.surfaceVariant,
+                      highlightColor: colorScheme.surface,
+                      child: Container(
+                        height: 80,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceVariant,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+              );
             } else if (snapshot.hasError) {
               return Center(
                 child: Column(
@@ -109,6 +129,12 @@ class _ThreadListPageState extends State<ThreadListPage> {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_thread_list',
+        onPressed: () => Navigator.pushNamed(context, AppRoutes.newThread),
+        child: const Icon(Icons.add),
+        tooltip: 'Añadir hilo',
       ),
     );
   }

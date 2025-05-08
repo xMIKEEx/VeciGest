@@ -17,6 +17,7 @@ import 'package:vecigest/presentation/incidents/new_incident_page.dart';
 import 'package:vecigest/presentation/incidents/incident_detail_page.dart'; // Assumed
 import 'package:vecigest/presentation/documents/upload_doc_page.dart';
 import 'package:vecigest/presentation/documents/document_detail_page.dart'; // Assumed
+import 'package:vecigest/presentation/chat/new_thread_page.dart';
 
 // Import models for argument casting
 import 'package:vecigest/domain/models/poll_model.dart';
@@ -47,6 +48,7 @@ class AppRoutes {
   static const String newIncident = '/new-incident';
   static const String uploadDocument = '/upload-document';
   static const String documentDetail = '/document-detail';
+  static const String newThread = '/new-thread';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -127,6 +129,8 @@ class AppRoutes {
           ); // Assumed DocumentDetailPage
         }
         return _errorRoute(settings.name, "Expected DocumentModel argument");
+      case newThread:
+        return MaterialPageRoute(builder: (_) => const NewThreadPage());
       default:
         return _errorRoute(settings.name);
     }

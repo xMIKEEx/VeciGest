@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:vecigest/data/services/poll_service.dart';
 import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/utils/routes.dart';
@@ -22,7 +23,23 @@ class _PollListPageState extends State<PollListPage> {
         stream: _pollService.getPolls(),
         builder: (ctx, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return ListView.builder(
+              itemCount: 6,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              itemBuilder:
+                  (_, __) => Shimmer.fromColors(
+                    baseColor: colorScheme.surfaceVariant,
+                    highlightColor: colorScheme.surface,
+                    child: Container(
+                      height: 80,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+            );
           }
           if (snap.hasError) {
             return const Center(child: Text('Error al cargar encuestas'));

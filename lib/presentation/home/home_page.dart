@@ -47,14 +47,40 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(user?.email ?? 'Ver perfil'),
-                subtitle: user != null ? Text('ID: ${user.uid}') : null,
+                leading: Icon(
+                  Icons.person,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                title: Text(
+                  user?.email ?? 'Ver perfil',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                subtitle:
+                    user != null
+                        ? Text(
+                          'ID: ${user.uid}',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        )
+                        : null,
                 onTap: () {}, // Aquí puedes navegar a una pantalla de perfil
               ),
               SwitchListTile(
-                secondary: const Icon(Icons.dark_mode),
-                title: const Text('Modo oscuro'),
+                secondary: Icon(
+                  Icons.dark_mode,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                title: Text(
+                  'Modo oscuro',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
                 value:
                     Provider.of<ThemeProvider>(context).themeMode ==
                     ThemeMode.dark,
@@ -63,12 +89,19 @@ class _HomePageState extends State<HomePage> {
                     context,
                     listen: false,
                   ).setTheme(val ? ThemeMode.dark : ThemeMode.light);
-                  // No cerrar el modal
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Cerrar sesión'),
+                leading: Icon(
+                  Icons.logout,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                title: Text(
+                  'Cerrar sesión',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
                   if (mounted) {
@@ -78,8 +111,16 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('Acerca de'),
+                leading: Icon(
+                  Icons.info_outline,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                title: Text(
+                  'Acerca de',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
                 onTap: () {
                   showAboutDialog(
                     context: context,
@@ -189,34 +230,17 @@ class _HomePageState extends State<HomePage> {
                   crossAxisSpacing: 24,
                   children:
                       options.map((opt) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _currentIndex = opt['route'] as int;
-                            });
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            decoration: BoxDecoration(
-                              color: (opt['color'] as Color).withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (opt['color'] as Color).withOpacity(
-                                    0.08,
-                                  ),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                              border: Border.all(
-                                color:
-                                    _currentIndex == opt['route']
-                                        ? (opt['color'] as Color)
-                                        : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
+                        return Material(
+                          color: (opt['color'] as Color).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          elevation: _currentIndex == opt['route'] ? 8 : 2,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              setState(() {
+                                _currentIndex = opt['route'] as int;
+                              });
+                            },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
