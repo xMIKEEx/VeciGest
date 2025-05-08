@@ -1,6 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.vecigest">
+
+    <!-- Permissions for internet access -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Permissions for accessing media, required by image_picker, file_picker, firebase_storage -->
+    <!-- For Android 13 (API 33) and above, specific media permissions are preferred. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Add READ_MEDIA_VIDEO or READ_MEDIA_AUDIO if you handle those file types -->
+    <!-- For older Android versions or broader file access (use with caution and consider Scoped Storage): -->
+    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> -->
+
+    <!-- Permissions for flutter_local_notifications -->
+    <!-- Required to post notifications on Android 13 (API 33) and above -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Allows the app to use exact alarms, needed by flutter_local_notifications for precise scheduling -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Allows the app to receive a broadcast after the device boots, to reschedule notifications -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Allows notifications to vibrate the device -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
+        android:enableOnBackInvokedCallback="true"
         android:label="vecigest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -41,6 +63,25 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Added for url_launcher: Allows querying for apps that can handle HTTP/HTTPS URLs -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <!-- Added for url_launcher: Allows querying for apps that can handle tel (dialing) -->
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+        <!-- Added for url_launcher: Allows querying for apps that can handle mailto (email) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
         </intent>
     </queries>
 </manifest>

@@ -12,7 +12,12 @@
           "package_name": "com.example.vecigest"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "672901646033-629mdpqe6aojvahs0n51hnm3fn5ct06j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAA_Qa-q0_lPBN6JZbL8g-HSD-lJBAno6w"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672901646033-629mdpqe6aojvahs0n51hnm3fn5ct06j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "672901646033-ak2pl2fdqg24l335b3k0o4s8goe9ofii.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.vecigest"
+              }
+            }
+          ]
         }
       }
     }

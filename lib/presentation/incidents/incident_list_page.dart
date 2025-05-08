@@ -51,6 +51,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_incident_list',
         onPressed: () => Navigator.pushNamed(context, AppRoutes.newIncident),
         child: const Icon(Icons.add),
         tooltip: 'Nueva incidencia',

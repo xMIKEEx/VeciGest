@@ -17,6 +17,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
   String? _error;
 
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
   void _register() async {
     setState(() {
       _isLoading = true;
@@ -65,16 +68,40 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showPassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                ),
+              ),
+              obscureText: !_showPassword,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _confirmController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Confirmar contraseña',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showConfirmPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showConfirmPassword = !_showConfirmPassword;
+                    });
+                  },
+                ),
               ),
-              obscureText: true,
+              obscureText: !_showConfirmPassword,
             ),
             const SizedBox(height: 24),
             if (_error != null)
@@ -86,6 +113,41 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: _register,
                 child: const Text('Registrar'),
               ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: Image.asset(
+                'assets/google_logo.png',
+                height: 24,
+                width: 24,
+              ),
+              label: const Text('Registrarse con Google'),
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true;
+                  _error = null;
+                });
+                try {
+                  final userCredential = await _authService.signInWithGoogle();
+                  if (userCredential != null && mounted) {
+                    Navigator.of(context).pushReplacementNamed('/home');
+                  }
+                } catch (e) {
+                  setState(() {
+                    _error = e.toString();
+                  });
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 48),
+                side: const BorderSide(color: Colors.grey),
+              ),
+            ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {

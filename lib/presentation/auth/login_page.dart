@@ -15,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isLoading = false;
   String? _error;
+  bool _showPassword = false;
 
   void _login() async {
     setState(() {
@@ -57,8 +58,20 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _showPassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                ),
+              ),
+              obscureText: !_showPassword,
             ),
             const SizedBox(height: 24),
             if (_error != null)
@@ -67,6 +80,41 @@ class _LoginPageState extends State<LoginPage> {
               const CircularProgressIndicator()
             else
               ElevatedButton(onPressed: _login, child: const Text('Entrar')),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: Image.asset(
+                'assets/google_logo.png',
+                height: 24,
+                width: 24,
+              ),
+              label: const Text('Iniciar sesión con Google'),
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true;
+                  _error = null;
+                });
+                try {
+                  final userCredential = await _authService.signInWithGoogle();
+                  if (userCredential != null && mounted) {
+                    Navigator.of(context).pushReplacementNamed('/home');
+                  }
+                } catch (e) {
+                  setState(() {
+                    _error = e.toString();
+                  });
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 48),
+                side: const BorderSide(color: Colors.grey),
+              ),
+            ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {
