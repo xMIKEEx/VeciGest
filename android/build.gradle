@@ -1,11 +1,14 @@
 buildscript {
+    ext.kotlin_version = '1.9.23' // Updated to a more recent version, ensure consistency
     repositories {
         google()
         mavenCentral()
     }
+
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4'
-        // ...existing code...
+        classpath 'com.android.tools.build:gradle:8.7.0' // Updated AGP version
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1' // Updated Google Services plugin
     }
 }
 
@@ -16,25 +19,14 @@ allprojects {
     }
 }
 
+rootProject.buildDir = '../build'
 subprojects {
-    project.configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            // ...existing code...
-        }
-    }
-    
-    afterEvaluate {
-        if (project.hasProperty('android')) {
-            android {
-                compileOptions {
-                    sourceCompatibility JavaVersion.VERSION_11
-                    targetCompatibility JavaVersion.VERSION_11
-                }
-            }
-        }
-        
-        if (project.hasProperty('android') && project.android.hasProperty('kotlinOptions')) {
-            project.android.kotlinOptions.jvmTarget = '11'
-        }
-    }
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
 }
