@@ -45,6 +45,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Opcional para rutas nombradas (más adelante)
+  # auto_route: ^6.0.0
+  # flutter_hooks: ^0.18.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
