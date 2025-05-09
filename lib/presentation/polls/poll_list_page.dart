@@ -5,7 +5,7 @@ import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/utils/routes.dart';
 
 class PollListPage extends StatefulWidget {
-  const PollListPage({Key? key}) : super(key: key);
+  const PollListPage({super.key});
 
   @override
   State<PollListPage> createState() => _PollListPageState();
@@ -18,7 +18,7 @@ class _PollListPageState extends State<PollListPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: colorScheme.background,
+      color: colorScheme.surface,
       child: StreamBuilder<List<PollModel>>(
         stream: _pollService.getPolls(),
         builder: (ctx, snap) {
@@ -28,13 +28,13 @@ class _PollListPageState extends State<PollListPage> {
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               itemBuilder:
                   (_, __) => Shimmer.fromColors(
-                    baseColor: colorScheme.surfaceVariant,
+                    baseColor: colorScheme.surfaceContainerHighest,
                     highlightColor: colorScheme.surface,
                     child: Container(
                       height: 80,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -49,9 +49,7 @@ class _PollListPageState extends State<PollListPage> {
             return Center(
               child: Text(
                 'No hay encuestas disponibles',
-                style: TextStyle(
-                  color: colorScheme.onBackground.withOpacity(0.6),
-                ),
+                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
               ),
             );
           }

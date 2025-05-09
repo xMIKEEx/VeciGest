@@ -48,9 +48,7 @@ class DocumentService {
   }) async {
     try {
       final fileName =
-          DateTime.now().millisecondsSinceEpoch.toString() +
-          '_' +
-          file.path.split('/').last;
+          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
       final storagePath = 'documents/$folder/$fileName';
       final ref = _storage.ref().child(storagePath);
       final uploadTask = await ref.putFile(file);
@@ -78,9 +76,7 @@ class DocumentService {
   ) async {
     try {
       final fileName =
-          DateTime.now().millisecondsSinceEpoch.toString() +
-          '_' +
-          photoFile.path.split('/').last;
+          '${DateTime.now().millisecondsSinceEpoch}_${photoFile.path.split('/').last}';
       final storagePath = 'incidents/$incidentId/$fileName';
       final ref = FirebaseStorage.instance.ref().child(storagePath);
       final uploadTask = await ref.putFile(photoFile);

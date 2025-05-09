@@ -5,8 +5,7 @@ import 'package:vecigest/domain/models/message_model.dart';
 class ChatBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
-  const ChatBubble({Key? key, required this.message, required this.isMe})
-    : super(key: key);
+  const ChatBubble({super.key, required this.message, required this.isMe});
 
   @override
   Widget build(BuildContext context) {

@@ -7,7 +7,7 @@ import 'package:vecigest/utils/routes.dart';
 
 class PollDetailPage extends StatefulWidget {
   final PollModel poll;
-  const PollDetailPage({Key? key, required this.poll}) : super(key: key);
+  const PollDetailPage({super.key, required this.poll});
 
   @override
   State<PollDetailPage> createState() => _PollDetailPageState();

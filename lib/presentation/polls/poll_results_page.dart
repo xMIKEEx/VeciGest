@@ -5,15 +5,15 @@ import 'package:vecigest/domain/models/poll_option_model.dart';
 
 class PollResultsPage extends StatelessWidget {
   final PollModel poll;
-  const PollResultsPage({Key? key, required this.poll}) : super(key: key);
+  const PollResultsPage({super.key, required this.poll});
 
   @override
   Widget build(BuildContext context) {
-    final PollService _pollService = PollService();
+    final PollService pollService = PollService();
     return Scaffold(
       appBar: AppBar(title: Text('Resultados')),
       body: FutureBuilder<List<PollOptionModel>>(
-        future: _pollService.getOptions(poll.id).first,
+        future: pollService.getOptions(poll.id).first,
         builder: (ctx, snap) {
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());

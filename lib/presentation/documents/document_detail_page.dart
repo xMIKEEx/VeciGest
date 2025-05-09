@@ -4,8 +4,7 @@ import 'package:vecigest/domain/models/document_model.dart';
 class DocumentDetailPage extends StatelessWidget {
   final DocumentModel document;
 
-  const DocumentDetailPage({Key? key, required this.document})
-    : super(key: key);
+  const DocumentDetailPage({super.key, required this.document});
 
   @override
   Widget build(BuildContext context) {

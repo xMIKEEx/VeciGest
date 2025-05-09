@@ -6,7 +6,7 @@ import 'package:vecigest/domain/models/incident_model.dart';
 import 'package:vecigest/utils/routes.dart';
 
 class IncidentListPage extends StatefulWidget {
-  const IncidentListPage({Key? key}) : super(key: key);
+  const IncidentListPage({super.key});
 
   @override
   State<IncidentListPage> createState() => _IncidentListPageState();
@@ -19,7 +19,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: colorScheme.background,
+      color: colorScheme.surface,
       child: StreamBuilder<List<IncidentModel>>(
         stream: _incidentService.getIncidents(),
         builder: (ctx, snap) {
@@ -29,13 +29,13 @@ class _IncidentListPageState extends State<IncidentListPage> {
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               itemBuilder:
                   (_, __) => Shimmer.fromColors(
-                    baseColor: colorScheme.surfaceVariant,
+                    baseColor: colorScheme.surfaceContainerHighest,
                     highlightColor: colorScheme.surface,
                     child: Container(
                       height: 80,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -50,9 +50,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
             return Center(
               child: Text(
                 'No hay incidencias registradas',
-                style: TextStyle(
-                  color: colorScheme.onBackground.withOpacity(0.6),
-                ),
+                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
               ),
             );
           }
@@ -100,7 +98,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
                         Text(
                           DateFormat.yMd().add_Hm().format(inc.createdAt),
                           style: TextStyle(
-                            color: colorScheme.onBackground.withOpacity(0.6),
+                            color: colorScheme.onSurface.withOpacity(0.6),
                           ),
                         ),
                       ],

@@ -6,7 +6,7 @@ import 'package:vecigest/domain/models/message_model.dart';
 
 class ChatPage extends StatefulWidget {
   final ThreadModel thread;
-  const ChatPage({Key? key, required this.thread}) : super(key: key);
+  const ChatPage({super.key, required this.thread});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -104,8 +104,7 @@ class _ChatPageState extends State<ChatPage> {
 class ChatBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
-  const ChatBubble({Key? key, required this.message, required this.isMe})
-    : super(key: key);
+  const ChatBubble({super.key, required this.message, required this.isMe});
 
   @override
   Widget build(BuildContext context) {

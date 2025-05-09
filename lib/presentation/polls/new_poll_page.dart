@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vecigest/data/services/poll_service.dart';
 
 class NewPollPage extends StatefulWidget {
-  const NewPollPage({Key? key}) : super(key: key);
+  const NewPollPage({super.key});
 
   @override
   State<NewPollPage> createState() => _NewPollPageState();

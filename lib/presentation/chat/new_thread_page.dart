@@ -4,7 +4,7 @@ import 'package:vecigest/data/services/chat_service.dart';
 import 'package:vecigest/domain/models/user_model.dart';
 
 class NewThreadPage extends StatefulWidget {
-  const NewThreadPage({Key? key}) : super(key: key);
+  const NewThreadPage({super.key});
 
   @override
   State<NewThreadPage> createState() => _NewThreadPageState();

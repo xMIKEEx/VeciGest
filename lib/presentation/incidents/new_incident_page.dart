@@ -7,7 +7,7 @@ import 'package:vecigest/data/services/document_service.dart'; // For uploadInci
 import 'dart:io';
 
 class NewIncidentPage extends StatefulWidget {
-  const NewIncidentPage({Key? key}) : super(key: key);
+  const NewIncidentPage({super.key});
 
   @override
   State<NewIncidentPage> createState() => _NewIncidentPageState();

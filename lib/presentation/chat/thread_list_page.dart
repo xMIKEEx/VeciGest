@@ -6,7 +6,7 @@ import 'package:vecigest/utils/routes.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ThreadListPage extends StatefulWidget {
-  const ThreadListPage({Key? key}) : super(key: key);
+  const ThreadListPage({super.key});
 
   @override
   State<ThreadListPage> createState() => _ThreadListPageState();
@@ -31,7 +31,7 @@ class _ThreadListPageState extends State<ThreadListPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: StreamBuilder<List<ThreadModel>>(
@@ -46,13 +46,13 @@ class _ThreadListPageState extends State<ThreadListPage> {
                 ),
                 itemBuilder:
                     (_, __) => Shimmer.fromColors(
-                      baseColor: colorScheme.surfaceVariant,
+                      baseColor: colorScheme.surfaceContainerHighest,
                       highlightColor: colorScheme.surface,
                       child: Container(
                         height: 80,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceVariant,
+                          color: colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
@@ -77,7 +77,7 @@ class _ThreadListPageState extends State<ThreadListPage> {
                 child: Text(
                   'No hay hilos disponibles.',
                   style: TextStyle(
-                    color: colorScheme.onBackground.withOpacity(0.6),
+                    color: colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               );
@@ -111,7 +111,7 @@ class _ThreadListPageState extends State<ThreadListPage> {
                       child: Text(
                         timeago.format(thread.createdAt),
                         style: TextStyle(
-                          color: colorScheme.onBackground.withOpacity(0.6),
+                          color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                     ),
@@ -133,8 +133,8 @@ class _ThreadListPageState extends State<ThreadListPage> {
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_thread_list',
         onPressed: () => Navigator.pushNamed(context, AppRoutes.newThread),
-        child: const Icon(Icons.add),
         tooltip: 'Añadir hilo',
+        child: const Icon(Icons.add),
       ),
     );
   }

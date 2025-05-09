@@ -9,8 +9,7 @@ extension StringCap on String {
 
 class IncidentDetailPage extends StatefulWidget {
   final IncidentModel incident;
-  const IncidentDetailPage({Key? key, required this.incident})
-    : super(key: key);
+  const IncidentDetailPage({super.key, required this.incident});
 
   @override
   State<IncidentDetailPage> createState() => _IncidentDetailPageState();

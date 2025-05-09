@@ -5,7 +5,7 @@ import 'package:vecigest/data/services/document_service.dart';
 import 'dart:io';
 
 class UploadDocPage extends StatefulWidget {
-  const UploadDocPage({Key? key}) : super(key: key);
+  const UploadDocPage({super.key});
 
   @override
   State<UploadDocPage> createState() => _UploadDocPageState();

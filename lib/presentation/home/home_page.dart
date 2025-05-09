@@ -9,7 +9,7 @@ import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected p
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -255,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
-                                    color: colorScheme.onBackground,
+                                    color: colorScheme.onSurface,
                                   ),
                                 ),
                               ],

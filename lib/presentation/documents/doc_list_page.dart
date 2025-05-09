@@ -6,7 +6,7 @@ import 'package:vecigest/domain/models/document_model.dart';
 import 'package:vecigest/utils/routes.dart';
 
 class DocListPage extends StatefulWidget {
-  const DocListPage({Key? key}) : super(key: key);
+  const DocListPage({super.key});
 
   @override
   State<DocListPage> createState() => _DocListPageState();
@@ -19,7 +19,7 @@ class _DocListPageState extends State<DocListPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: colorScheme.background,
+      color: colorScheme.surface,
       child: StreamBuilder<List<DocumentModel>>(
         stream: _documentService.getDocuments(),
         builder: (ctx, snap) {
@@ -29,13 +29,13 @@ class _DocListPageState extends State<DocListPage> {
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               itemBuilder:
                   (_, __) => Shimmer.fromColors(
-                    baseColor: colorScheme.surfaceVariant,
+                    baseColor: colorScheme.surfaceContainerHighest,
                     highlightColor: colorScheme.surface,
                     child: Container(
                       height: 80,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -50,9 +50,7 @@ class _DocListPageState extends State<DocListPage> {
             return Center(
               child: Text(
                 'No hay documentos disponibles',
-                style: TextStyle(
-                  color: colorScheme.onBackground.withOpacity(0.6),
-                ),
+                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
               ),
             );
           }
@@ -85,7 +83,7 @@ class _DocListPageState extends State<DocListPage> {
                     child: Text(
                       DateFormat.yMd().add_Hm().format(doc.uploadedAt),
                       style: TextStyle(
-                        color: colorScheme.onBackground.withOpacity(0.6),
+                        color: colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ),
