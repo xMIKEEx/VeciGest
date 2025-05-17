@@ -63,18 +63,18 @@ class _IncidentListPageState extends State<IncidentListPage> {
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
+                    vertical: 18,
+                    horizontal: 22,
                   ),
                   title: Text(
                     inc.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 19,
                     ),
                   ),
                   subtitle: Padding(
@@ -83,20 +83,26 @@ class _IncidentListPageState extends State<IncidentListPage> {
                       children: [
                         Icon(
                           Icons.report_problem,
-                          size: 18,
+                          size: 20,
                           color: colorScheme.primary,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           'Estado: ${inc.status}',
                           style: TextStyle(
                             color: colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 16),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          DateFormat.yMd().add_Hm().format(inc.createdAt),
+                          DateFormat('dd/MM/yyyy HH:mm').format(inc.createdAt),
                           style: TextStyle(
                             color: colorScheme.onSurface.withOpacity(0.6),
                           ),

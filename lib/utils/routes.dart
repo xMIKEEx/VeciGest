@@ -18,6 +18,7 @@ import 'package:vecigest/presentation/incidents/incident_detail_page.dart'; // A
 import 'package:vecigest/presentation/documents/upload_doc_page.dart';
 import 'package:vecigest/presentation/documents/document_detail_page.dart'; // Assumed
 import 'package:vecigest/presentation/chat/new_thread_page.dart';
+import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Assumed
 
 // Import models for argument casting
 import 'package:vecigest/domain/models/poll_model.dart';
@@ -39,6 +40,7 @@ class AppRoutes {
   static const String incidents = '/incidents';
   static const String documents = '/documents';
   static const String polls = '/polls';
+  static const String reservations = '/reservations';
 
   // Added route constants
   static const String pollDetail = '/poll-detail';
@@ -89,6 +91,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const DocListPage());
       case polls:
         return MaterialPageRoute(builder: (_) => const PollListPage());
+      case reservations:
+        return MaterialPageRoute(builder: (_) => const ReservationListPage());
 
       // Added cases for new routes
       case pollDetail:

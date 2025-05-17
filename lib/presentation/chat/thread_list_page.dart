@@ -92,18 +92,18 @@ class _ThreadListPageState extends State<ThreadListPage> {
                   elevation: 3,
                   margin: const EdgeInsets.only(bottom: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 20,
+                      vertical: 18,
+                      horizontal: 22,
                     ),
                     title: Text(
                       thread.title,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                        fontSize: 19,
                       ),
                     ),
                     subtitle: Padding(
@@ -119,7 +119,7 @@ class _ThreadListPageState extends State<ThreadListPage> {
                     onTap: () {
                       Navigator.pushNamed(
                         context,
-                        AppRoutes.chatMessages, // Changed from AppRoutes.chat
+                        AppRoutes.chatMessages,
                         arguments: thread,
                       );
                     },

@@ -66,18 +66,18 @@ class _PollListPageState extends State<PollListPage> {
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
+                    vertical: 18,
+                    horizontal: 22,
                   ),
                   title: Text(
                     poll.question,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 19,
                     ),
                   ),
                   subtitle: Padding(
@@ -86,15 +86,15 @@ class _PollListPageState extends State<PollListPage> {
                       children: [
                         Icon(
                           Icons.how_to_vote,
-                          size: 18,
+                          size: 20,
                           color: colorScheme.primary,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           totalVotes == 1 ? '1 voto' : '$totalVotes votos',
                           style: TextStyle(
                             color: colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

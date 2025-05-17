@@ -6,6 +6,7 @@ import 'package:vecigest/presentation/chat/thread_list_page.dart'; // Changed im
 import 'package:vecigest/presentation/incidents/incident_list_page.dart'; // Corrected path
 import 'package:vecigest/presentation/documents/doc_list_page.dart'; // Corrected path
 import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected path
+import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Nueva importación
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,10 +20,11 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = -1;
 
   final List<Widget> _pages = const [
-    ThreadListPage(), // Changed to ThreadListPage
+    ThreadListPage(),
     IncidentListPage(),
     DocListPage(),
     PollListPage(),
+    ReservationListPage(),
   ];
 
   void _openSettings() async {
@@ -161,6 +163,12 @@ class _HomePageState extends State<HomePage> {
         'color': Colors.purple,
         'route': 3,
       },
+      {
+        'label': 'Reservas',
+        'icon': Icons.event_available,
+        'color': Colors.teal,
+        'route': 4,
+      },
     ];
     if (_currentIndex < 0 || _currentIndex >= _pages.length) {
       // Dashboard
@@ -188,13 +196,23 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 28,
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
-                      child: Icon(
-                        Icons.person,
-                        size: 32,
-                        color: colorScheme.primary,
-                      ),
+                      radius: 32,
+                      backgroundColor: colorScheme.primary.withOpacity(0.15),
+                      child:
+                          user?.email != null
+                              ? Text(
+                                user!.email![0].toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                              : Icon(
+                                Icons.person,
+                                size: 32,
+                                color: colorScheme.primary,
+                              ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -202,8 +220,9 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.email != null
-                                ? '¡Hola, ${user!.email}!'
+                            user?.email != null &&
+                                    user?.email!.isNotEmpty == true
+                                ? '¡Hola, ${user?.email!.split('@')[0]}!'
                                 : '¡Bienvenido!',
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
@@ -231,11 +250,11 @@ class _HomePageState extends State<HomePage> {
                   children:
                       options.map((opt) {
                         return Material(
-                          color: (opt['color'] as Color).withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(20),
-                          elevation: _currentIndex == opt['route'] ? 8 : 2,
+                          color: (opt['color'] as Color).withOpacity(0.13),
+                          borderRadius: BorderRadius.circular(24),
+                          elevation: 4,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(24),
                             onTap: () {
                               setState(() {
                                 _currentIndex = opt['route'] as int;
@@ -246,15 +265,15 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Icon(
                                   opt['icon'] as IconData,
-                                  size: 48,
+                                  size: 54,
                                   color: opt['color'] as Color,
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 16),
                                 Text(
                                   opt['label'] as String,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                    fontSize: 20,
                                     color: colorScheme.onSurface,
                                   ),
                                 ),

@@ -63,28 +63,38 @@ class _DocListPageState extends State<DocListPage> {
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
+                    vertical: 18,
+                    horizontal: 22,
                   ),
-                  leading: const Icon(Icons.insert_drive_file, size: 32),
+                  leading: const Icon(Icons.insert_drive_file, size: 34),
                   title: Text(
                     doc.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 19,
                     ),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      DateFormat.yMd().add_Hm().format(doc.uploadedAt),
-                      style: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('dd/MM/yyyy HH:mm').format(doc.uploadedAt),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 28),
