@@ -44,13 +44,16 @@ class DocumentService {
     File file, {
     required String folder,
     required String uploaderId,
+    String? name,
   }) async {
     try {
       final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+          name?.trim().isNotEmpty == true
+              ? name!.trim()
+              : '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
       final storagePath = 'documents/$folder/$fileName';
       final ref = _storage.ref().child(storagePath);
-      final uploadTask = await ref.putFile(file);
+      await ref.putFile(file);
       final url = await ref.getDownloadURL();
       final docData = {
         'name': fileName,

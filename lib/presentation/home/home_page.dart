@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 // Importa las páginas placeholder (ajusta los imports según tu estructura real)
 import 'package:vecigest/presentation/chat/thread_list_page.dart'; // Changed import
 import 'package:vecigest/presentation/incidents/incident_list_page.dart'; // Corrected path
@@ -18,14 +19,54 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = -1;
+  String? _role;
+  bool _loadingRole = true;
 
-  final List<Widget> _pages = const [
+  final List<Widget> _pagesAdmin = const [
     ThreadListPage(),
     IncidentListPage(),
-    DocListPage(),
     PollListPage(),
     ReservationListPage(),
   ];
+  final List<Widget> _pagesUser = const [
+    ThreadListPage(),
+    IncidentListPage(),
+    PollListPage(),
+    ReservationListPage(),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _role = null;
+        _loadingRole = false;
+      });
+      return;
+    }
+    try {
+      final data =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+      setState(() {
+        _role = data.data()?['role'] as String?;
+        _loadingRole = false;
+      });
+    } catch (e) {
+      setState(() {
+        _role = null;
+        _loadingRole = false;
+      });
+    }
+  }
 
   void _openSettings() async {
     showModalBottomSheet(
@@ -62,7 +103,7 @@ class _HomePageState extends State<HomePage> {
                 subtitle:
                     user != null
                         ? Text(
-                          'ID: ${user.uid}',
+                          'ID: \\${user.uid}',
                           style: TextStyle(
                             color: Theme.of(
                               context,
@@ -71,6 +112,24 @@ class _HomePageState extends State<HomePage> {
                         )
                         : null,
                 onTap: () {}, // Aquí puedes navegar a una pantalla de perfil
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.description,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                title: Text(
+                  'Documentos',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const DocListPage()),
+                  );
+                },
               ),
               SwitchListTile(
                 secondary: Icon(
@@ -107,8 +166,9 @@ class _HomePageState extends State<HomePage> {
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
                   if (mounted) {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushReplacementNamed('/login');
+                    Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil('/welcome', (route) => false);
                   }
                 },
               ),
@@ -141,36 +201,86 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loadingRole) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final colorScheme = Theme.of(context).colorScheme;
     final user = FirebaseAuth.instance.currentUser;
-    final options = [
-      {'label': 'Chat', 'icon': Icons.chat, 'color': Colors.blue, 'route': 0},
-      {
-        'label': 'Incidencias',
-        'icon': Icons.report_problem,
-        'color': Colors.orange,
-        'route': 1,
-      },
-      {
-        'label': 'Documentos',
-        'icon': Icons.description,
-        'color': Colors.green,
-        'route': 2,
-      },
-      {
-        'label': 'Encuestas',
-        'icon': Icons.poll,
-        'color': Colors.purple,
-        'route': 3,
-      },
-      {
-        'label': 'Reservas',
-        'icon': Icons.event_available,
-        'color': Colors.teal,
-        'route': 4,
-      },
-    ];
-    if (_currentIndex < 0 || _currentIndex >= _pages.length) {
+    // Opciones de menú según rol
+    final List<Map<String, dynamic>> options =
+        _role == 'admin'
+            ? [
+              {
+                'label': 'Chat',
+                'icon': Icons.chat,
+                'color': Colors.blue,
+                'route': 0,
+              },
+              {
+                'label': 'Incidencias',
+                'icon': Icons.report_problem,
+                'color': Colors.orange,
+                'route': 1,
+              },
+              {
+                'label': 'Encuestas',
+                'icon': Icons.poll,
+                'color': Colors.purple,
+                'route': 2,
+              },
+              {
+                'label': 'Reservas',
+                'icon': Icons.event_available,
+                'color': Colors.teal,
+                'route': 3,
+              },
+              {
+                'label': 'Gestión de usuarios',
+                'icon': Icons.manage_accounts,
+                'color': Colors.indigo,
+                'route': 4,
+              },
+              {
+                'label': 'Instalaciones',
+                'icon': Icons.home_work,
+                'color': Colors.brown,
+                'route': 5,
+              },
+              {
+                'label': 'Notificaciones',
+                'icon': Icons.notifications,
+                'color': Colors.red,
+                'route': 6,
+              },
+            ]
+            : [
+              {
+                'label': 'Chat',
+                'icon': Icons.chat,
+                'color': Colors.blue,
+                'route': 0,
+              },
+              {
+                'label': 'Incidencias',
+                'icon': Icons.report_problem,
+                'color': Colors.orange,
+                'route': 1,
+              },
+              {
+                'label': 'Encuestas',
+                'icon': Icons.poll,
+                'color': Colors.purple,
+                'route': 2,
+              },
+              {
+                'label': 'Reservas',
+                'icon': Icons.event_available,
+                'color': Colors.teal,
+                'route': 3,
+              },
+            ];
+    final List<Widget> pages = _role == 'admin' ? _pagesAdmin : _pagesUser;
+    if (_currentIndex < 0 || _currentIndex >= pages.length) {
       // Dashboard
       return Scaffold(
         appBar: AppBar(
@@ -228,6 +338,32 @@ class _HomePageState extends State<HomePage> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
+                          if (_role != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    _role == 'admin'
+                                        ? Colors.orange.withOpacity(0.2)
+                                        : Colors.blue.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _role == 'admin' ? 'Administrador' : 'Usuario',
+                                style: TextStyle(
+                                  color:
+                                      _role == 'admin'
+                                          ? Colors.orange
+                                          : Colors.blue,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 4),
                           Text(
                             '¿Qué quieres hacer hoy?',
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -238,6 +374,63 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              if (_role == 'admin')
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.apartment),
+                    label: const Text('Gestionar Unidades'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/manage-units');
+                    },
+                  ),
+                ),
+              if (_role == 'admin')
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.mail_outline),
+                    label: const Text('Invitar vecino a unidad'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/invite-resident');
+                    },
+                  ),
+                ),
+              if (_role == 'empresa')
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.business),
+                    label: const Text('Crear comunidad'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/create-community');
+                    },
+                  ),
+                ),
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
@@ -305,7 +498,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        body: _pages[_currentIndex],
+        body: pages[_currentIndex],
       );
     }
   }

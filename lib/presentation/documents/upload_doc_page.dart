@@ -56,6 +56,7 @@ class _UploadDocPageState extends State<UploadDocPage> {
         _pickedFile!,
         folder: _folderCtrl.text.trim(),
         uploaderId: user.uid,
+        name: _nameCtrl.text.trim(),
       );
       setState(() => _loading = false);
       Navigator.pop(context, true);

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -46,6 +47,52 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  // Registro unificado para usuario o admin
+  Future<UserCredential> register({
+    required String email,
+    required String password,
+    required String role,
+    Map<String, dynamic>? userData,
+    Map<String, dynamic>? communityData,
+  }) async {
+    final userCred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    if (role == 'admin') {
+      // Crea comunidad y asocia admin
+      final communityRef = await FirebaseFirestore.instance
+          .collection('communities')
+          .add({
+            ...?communityData,
+            'adminId': userCred.user!.uid,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCred.user!.uid)
+          .set({
+            ...?userData,
+            'role': 'admin',
+            'communityId': communityRef.id,
+            'email': email,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+    } else {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCred.user!.uid)
+          .set({
+            ...?userData,
+            'role': 'user',
+            'communityId': userData?['communityId'],
+            'email': email,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+    }
+    return userCred;
   }
 
   // Usuario tester para pruebas

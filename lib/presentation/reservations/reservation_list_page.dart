@@ -4,7 +4,7 @@ import 'package:vecigest/data/services/reservation_service.dart';
 import 'package:vecigest/domain/models/reservation_model.dart';
 
 class ReservationListPage extends StatelessWidget {
-  const ReservationListPage({Key? key}) : super(key: key);
+  const ReservationListPage({super.key});
 
   Color _getCardColor(DateTime start, DateTime end) {
     final now = DateTime.now();
@@ -108,7 +108,7 @@ class ReservationListPage extends StatelessWidget {
 }
 
 class NewReservationPage extends StatefulWidget {
-  const NewReservationPage({Key? key}) : super(key: key);
+  const NewReservationPage({super.key});
 
   @override
   State<NewReservationPage> createState() => _NewReservationPageState();

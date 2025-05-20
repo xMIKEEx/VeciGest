@@ -42,7 +42,8 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeProvider.themeMode,
-      initialRoute: AppRoutes.home, // Saltar login temporalmente
+      initialRoute:
+          '/welcome', // Nueva pantalla de bienvenida con flujos separados
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
