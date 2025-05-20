@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/data/services/auth_service.dart';
 import 'package:vecigest/data/services/role_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginUserPage extends StatefulWidget {
   const LoginUserPage({super.key});
