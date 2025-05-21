@@ -7,6 +7,7 @@ import 'package:vecigest/presentation/incidents/incident_list_page.dart'; // Cor
 import 'package:vecigest/presentation/documents/doc_list_page.dart'; // Corrected path
 import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected path
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Nueva importación
+import 'package:vecigest/presentation/properties/property_list_page.dart'; // Importación para propiedades
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,13 +19,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = -1;
-
   final List<Widget> _pages = const [
     ThreadListPage(),
     IncidentListPage(),
     DocListPage(),
     PollListPage(),
     ReservationListPage(),
+    PropertyListPage(),
   ];
 
   void _openSettings() async {
@@ -169,6 +170,12 @@ class _HomePageState extends State<HomePage> {
         'color': Colors.teal,
         'route': 4,
       },
+      {
+        'label': 'Viviendas',
+        'icon': Icons.apartment,
+        'color': Colors.amber,
+        'route': 5,
+      },
     ];
     if (_currentIndex < 0 || _currentIndex >= _pages.length) {
       // Dashboard
@@ -238,6 +245,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,

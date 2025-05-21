@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
 
 class ReservationsToolButton extends StatelessWidget {
-  const ReservationsToolButton({Key? key}) : super(key: key);
+  const ReservationsToolButton({super.key});
 
   @override
   Widget build(BuildContext context) {

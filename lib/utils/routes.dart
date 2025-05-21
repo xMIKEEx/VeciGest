@@ -8,6 +8,10 @@ import 'package:vecigest/presentation/chat/chat_page.dart'; // For individual ch
 import 'package:vecigest/presentation/incidents/incident_list_page.dart';
 import 'package:vecigest/presentation/documents/doc_list_page.dart';
 import 'package:vecigest/presentation/polls/poll_list_page.dart';
+import 'package:vecigest/presentation/auth/create_community_page.dart';
+import 'package:vecigest/presentation/auth/invite_register_page.dart';
+import 'package:vecigest/presentation/home/user_dashboard_page.dart';
+import 'package:vecigest/presentation/auth/admin_no_community_page.dart';
 
 // Added imports for new pages (assuming these files and classes exist)
 import 'package:vecigest/presentation/polls/poll_detail_page.dart';
@@ -19,6 +23,9 @@ import 'package:vecigest/presentation/documents/upload_doc_page.dart';
 import 'package:vecigest/presentation/documents/document_detail_page.dart'; // Assumed
 import 'package:vecigest/presentation/chat/new_thread_page.dart';
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Assumed
+import 'package:vecigest/presentation/properties/property_list_page.dart';
+import 'package:vecigest/presentation/properties/property_detail_page.dart';
+import 'package:vecigest/presentation/properties/invitations_list_page.dart';
 
 // Import models for argument casting
 import 'package:vecigest/domain/models/poll_model.dart';
@@ -41,6 +48,13 @@ class AppRoutes {
   static const String documents = '/documents';
   static const String polls = '/polls';
   static const String reservations = '/reservations';
+  static const String properties = '/properties';
+  static const String propertyDetail = '/property-detail';
+  static const String invitations = '/invitations';
+  static const String createCommunity = '/create-community';
+  static const String inviteRegister = '/invite-register';
+  static const String userDashboard = '/user-dashboard';
+  static const String adminNoCommunity = '/admin-no-community';
 
   // Added route constants
   static const String pollDetail = '/poll-detail';
@@ -68,10 +82,6 @@ class AppRoutes {
       //   // For now, assuming it might be a general chat entry or needs specific args.
       //   // If ChatPage is always entered with a ThreadModel, this case might be redundant
       //   // or needs to handle settings.arguments as ThreadModel.
-      //   // return MaterialPageRoute(builder: (_) => const ChatPage(thread: /* provide thread model */));
-      //   // For now, let's assume the direct ChatPage navigation is handled by chatMessages
-      //   // and the main "Chat" tab goes to ThreadListPage (handled in HomePage).
-      //   // So, this specific '/chat' route might be unused or for a different purpose.
       //   // If it's for individual chats, it should be like chatMessages.
       //   // Let's make it point to ChatPage expecting a ThreadModel argument
       //   final args = settings.arguments;
@@ -93,6 +103,20 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const PollListPage());
       case reservations:
         return MaterialPageRoute(builder: (_) => const ReservationListPage());
+      case createCommunity:
+        return MaterialPageRoute(builder: (_) => const CreateCommunityPage());
+      case inviteRegister:
+        final args = settings.arguments;
+        if (args is String) {
+          return MaterialPageRoute(
+            builder: (_) => InviteRegisterPage(token: args),
+          );
+        }
+        return _errorRoute(settings.name, 'Token de invitación requerido');
+      case userDashboard:
+        return MaterialPageRoute(builder: (_) => const UserDashboardPage());
+      case adminNoCommunity:
+        return MaterialPageRoute(builder: (_) => const AdminNoCommunityPage());
 
       // Added cases for new routes
       case pollDetail:
@@ -135,6 +159,16 @@ class AppRoutes {
         return _errorRoute(settings.name, "Expected DocumentModel argument");
       case newThread:
         return MaterialPageRoute(builder: (_) => const NewThreadPage());
+      case properties:
+        return MaterialPageRoute(builder: (_) => const PropertyListPage());
+      case propertyDetail:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => const PropertyDetailPage(),
+          settings: RouteSettings(arguments: args),
+        );
+      case invitations:
+        return MaterialPageRoute(builder: (_) => const InvitationsListPage());
       default:
         return _errorRoute(settings.name);
     }

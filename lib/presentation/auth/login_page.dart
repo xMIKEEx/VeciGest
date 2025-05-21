@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/data/services/auth_service.dart';
+import 'package:vecigest/data/services/user_role_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,7 +18,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String? _error;
   bool _showPassword = false;
-
   void _login() async {
     setState(() {
       _isLoading = true;
@@ -27,8 +28,39 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userRole = await UserRoleService().getUserRoleAndCommunity(
+          user.uid,
+        );
+
+        if (userRole != null && mounted) {
+          if (userRole['role'] == 'admin') {
+            // Si es admin, verificamos si tiene comunidad
+            if (userRole['communityId'] == null ||
+                userRole['communityId'].isEmpty) {
+              print(
+                'DEBUG: Admin sin comunidad detectado, navegando a /admin-no-community',
+              );
+              // No tiene comunidad, redirigir a la página informativa y pasar argumentos
+              Navigator.of(context).pushReplacementNamed(
+                '/admin-no-community',
+                arguments: {
+                  'userId': user.uid,
+                  'userEmail': user.email,
+                  'displayName': user.displayName,
+                },
+              );
+            } else {
+              print('DEBUG: Admin con comunidad, navegando a /home');
+              // Tiene comunidad, va a la home de admin
+              Navigator.of(context).pushReplacementNamed('/home');
+            }
+          } else {
+            // Es usuario normal, va al dashboard de usuario
+            Navigator.of(context).pushReplacementNamed('/user-dashboard');
+          }
+        }
       }
     } catch (e) {
       setState(() {
@@ -44,7 +76,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar sesión')),
+      // Quita la flecha hacia atrás
+      appBar: AppBar(
+        title: const Text('Iniciar sesión'),
+        automaticallyImplyLeading: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -96,7 +132,8 @@ class _LoginPageState extends State<LoginPage> {
                 try {
                   final userCredential = await _authService.signInWithGoogle();
                   if (userCredential != null && mounted) {
-                    Navigator.of(context).pushReplacementNamed('/home');
+                    // Al hacer login con Google, mejor ir al splash que decidirá a dónde dirigir
+                    Navigator.of(context).pushReplacementNamed('/');
                   }
                 } catch (e) {
                   setState(() {

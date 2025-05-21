@@ -19,7 +19,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-
   void _register() async {
     setState(() {
       _isLoading = true;
@@ -33,12 +32,23 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
     try {
-      await _authService.signUp(
+      // Solo creamos la cuenta de Firebase Auth
+      final userCredential = await _authService.signUp(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+      final user = userCredential.user;
+
+      if (user != null && mounted) {
+        // Llevamos al usuario a crear la comunidad, pasando los datos necesarios
+        Navigator.of(context).pushReplacementNamed(
+          '/create-community',
+          arguments: {
+            'userId': user.uid,
+            'userEmail': user.email ?? '',
+            'displayName': user.email?.split('@')[0] ?? '',
+          },
+        );
       }
     } catch (e) {
       setState(() {
@@ -127,9 +137,32 @@ class _RegisterPageState extends State<RegisterPage> {
                   _error = null;
                 });
                 try {
+                  // Al registrarse con Google, el usuario se autentica directamente
                   final userCredential = await _authService.signInWithGoogle();
                   if (userCredential != null && mounted) {
-                    Navigator.of(context).pushReplacementNamed('/home');
+                    // Verificamos si el usuario es nuevo o no
+                    final isNewUser =
+                        userCredential.additionalUserInfo?.isNewUser ?? false;
+                    if (isNewUser) {
+                      // Es un usuario nuevo, lo llevamos a crear comunidad
+                      final user = userCredential.user;
+                      if (user != null) {
+                        Navigator.of(context).pushReplacementNamed(
+                          '/create-community',
+                          arguments: {
+                            'userId': user.uid,
+                            'userEmail': user.email ?? '',
+                            'displayName':
+                                user.displayName ??
+                                user.email?.split('@')[0] ??
+                                '',
+                          },
+                        );
+                        return;
+                      }
+                    }
+                    // Si no es usuario nuevo, ir al splash para decidir según su rol
+                    Navigator.of(context).pushReplacementNamed('/');
                   }
                 } catch (e) {
                   setState(() {
