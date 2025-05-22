@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class PropertyModel extends Equatable {
-  final String id;
-  final String
-  communityId; // ID de la comunidad a la que pertenece esta propiedad
+  final String viviendaId; // id de la vivienda (id del documento)
+  final String communityId; // id de la comunidad
   final String
   number; // Número/identificador de la vivienda (ej: "2B", "101", etc.)
   final String floor; // Planta
@@ -17,7 +16,7 @@ class PropertyModel extends Equatable {
   final Map<String, dynamic>?
   additionalInfo; // Información adicional (notas, características)
   const PropertyModel({
-    required this.id,
+    required this.viviendaId,
     required this.communityId,
     required this.number,
     required this.floor,
@@ -30,9 +29,14 @@ class PropertyModel extends Equatable {
   });
   factory PropertyModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    // Intentar inferir communityId desde la ruta padre si no está presente en los datos
+    String? communityId = data['communityId'];
+    if (communityId == null && doc.reference.parent.parent != null) {
+      communityId = doc.reference.parent.parent!.id;
+    }
     return PropertyModel(
-      id: doc.id,
-      communityId: data['communityId'] ?? '',
+      viviendaId: doc.id,
+      communityId: communityId ?? '',
       number: data['number'] ?? '',
       floor: data['floor'] ?? '',
       block: data['block'] ?? '',
@@ -69,7 +73,6 @@ class PropertyModel extends Equatable {
   }
 
   PropertyModel copyWith({
-    String? communityId,
     String? number,
     String? floor,
     String? block,
@@ -79,8 +82,8 @@ class PropertyModel extends Equatable {
     Map<String, dynamic>? additionalInfo,
   }) {
     return PropertyModel(
-      id: id,
-      communityId: communityId ?? this.communityId,
+      viviendaId: viviendaId,
+      communityId: communityId,
       number: number ?? this.number,
       floor: floor ?? this.floor,
       block: block ?? this.block,
@@ -94,7 +97,7 @@ class PropertyModel extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
+    viviendaId,
     communityId,
     number,
     floor,

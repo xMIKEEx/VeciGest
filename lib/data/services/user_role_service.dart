@@ -9,6 +9,7 @@ class UserRoleService {
     return {
       'role': data['role'] ?? 'user',
       'communityId': data['communityId'] ?? '',
+      'viviendaId': data['viviendaId'] ?? '', // Añadido para login correcto
     };
   }
 

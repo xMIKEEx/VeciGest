@@ -3,22 +3,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class InviteModel {
   final String id;
   final String communityId;
-  final String email;
-  final String role; // 'user' o 'admin'
-  final String vivienda;
+  final String role; // 'resident' o 'admin'
+  final String viviendaId;
   final String token;
-  final DateTime expiresAt;
   final bool used;
+  final DateTime? createdAt;
+  final DateTime? expiresAt;
+  final String? usedBy;
 
   InviteModel({
     required this.id,
     required this.communityId,
-    required this.email,
     required this.role,
-    required this.vivienda,
+    required this.viviendaId,
     required this.token,
-    required this.expiresAt,
     required this.used,
+    this.createdAt,
+    this.expiresAt,
+    this.usedBy,
   });
 
   factory InviteModel.fromFirestore(DocumentSnapshot doc) {
@@ -26,24 +28,32 @@ class InviteModel {
     return InviteModel(
       id: doc.id,
       communityId: data['communityId'] ?? '',
-      email: data['email'] ?? '',
-      role: data['role'] ?? 'user',
-      vivienda: data['vivienda'] ?? '',
+      role: data['role'] ?? 'resident',
+      viviendaId: data['viviendaId'] ?? '',
       token: data['token'] ?? '',
-      expiresAt: (data['expiresAt'] as Timestamp).toDate(),
       used: data['used'] ?? false,
+      createdAt:
+          data['createdAt'] != null
+              ? (data['createdAt'] as Timestamp).toDate()
+              : null,
+      expiresAt:
+          data['expiresAt'] != null
+              ? (data['expiresAt'] as Timestamp).toDate()
+              : null,
+      usedBy: data['usedBy'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'communityId': communityId,
-      'email': email,
       'role': role,
-      'vivienda': vivienda,
+      'viviendaId': viviendaId,
       'token': token,
-      'expiresAt': Timestamp.fromDate(expiresAt),
       'used': used,
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
+      'expiresAt': expiresAt != null ? Timestamp.fromDate(expiresAt!) : null,
+      'usedBy': usedBy,
     };
   }
 }

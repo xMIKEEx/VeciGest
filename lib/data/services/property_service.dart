@@ -3,20 +3,19 @@ import 'package:vecigest/domain/models/property_model.dart';
 
 class PropertyService {
   final FirebaseFirestore _firestore;
-  final CollectionReference _propertiesRef;
-
   PropertyService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _propertiesRef = (firestore ?? FirebaseFirestore.instance).collection(
-        'properties',
-      );
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // Obtener todas las propiedades de una comunidad
+  CollectionReference _viviendasRef(String communityId) {
+    return _firestore
+        .collection('communities')
+        .doc(communityId)
+        .collection('viviendas');
+  }
+
+  // Obtener todas las viviendas de una comunidad
   Stream<List<PropertyModel>> getProperties({required String communityId}) {
-    return _propertiesRef
-        .where('communityId', isEqualTo: communityId)
-        .orderBy('block')
-        .orderBy('floor')
+    return _viviendasRef(communityId)
         .orderBy('number')
         .snapshots()
         .map(
@@ -27,14 +26,17 @@ class PropertyService {
         );
   }
 
-  // Obtener una propiedad por su ID
-  Future<PropertyModel?> getPropertyById(String propertyId) async {
-    final doc = await _propertiesRef.doc(propertyId).get();
+  // Obtener una vivienda por su ID
+  Future<PropertyModel?> getPropertyById(
+    String communityId,
+    String viviendaId,
+  ) async {
+    final doc = await _viviendasRef(communityId).doc(viviendaId).get();
     if (!doc.exists) return null;
     return PropertyModel.fromFirestore(doc);
   }
 
-  // Crear una nueva propiedad
+  // Crear una nueva vivienda
   Future<PropertyModel> createProperty({
     required String communityId,
     required String number,
@@ -46,7 +48,6 @@ class PropertyService {
     Map<String, dynamic>? additionalInfo,
   }) async {
     final propertyData = {
-      'communityId': communityId,
       'number': number,
       'floor': floor,
       'block': block,
@@ -56,58 +57,72 @@ class PropertyService {
       'createdAt': Timestamp.fromDate(DateTime.now()),
       'additionalInfo': additionalInfo,
     };
-
-    final docRef = await _propertiesRef.add(propertyData);
+    final docRef = await _viviendasRef(communityId).add(propertyData);
     final newDoc = await docRef.get();
     return PropertyModel.fromFirestore(newDoc);
   }
 
-  // Actualizar una propiedad existente
+  // Actualizar una vivienda existente
   Future<void> updateProperty(
-    String propertyId,
+    String communityId,
+    String viviendaId,
     Map<String, dynamic> data,
   ) async {
-    await _propertiesRef.doc(propertyId).update(data);
+    await _viviendasRef(communityId).doc(viviendaId).update(data);
   }
 
-  // Eliminar una propiedad
-  Future<void> deleteProperty(String propertyId) async {
-    await _propertiesRef.doc(propertyId).delete();
+  // Eliminar una vivienda
+  Future<void> deleteProperty(String communityId, String viviendaId) async {
+    await _viviendasRef(communityId).doc(viviendaId).delete();
   }
 
-  // Verifica si un usuario ya está asignado a una vivienda
-  Future<bool> isUserAssignedToAnyProperty(String userId) async {
-    final query = await _propertiesRef.where('userId', isEqualTo: userId).get();
+  // Verifica si un usuario ya está asignado a una vivienda en la comunidad
+  Future<bool> isUserAssignedToAnyProperty(
+    String communityId,
+    String userId,
+  ) async {
+    final query =
+        await _viviendasRef(
+          communityId,
+        ).where('userId', isEqualTo: userId).get();
     return query.docs.isNotEmpty;
   }
 
   // Verifica si una vivienda ya tiene usuario asignado
-  Future<bool> isPropertyAssigned(String propertyId) async {
-    final doc = await _propertiesRef.doc(propertyId).get();
+  Future<bool> isPropertyAssigned(String communityId, String viviendaId) async {
+    final doc = await _viviendasRef(communityId).doc(viviendaId).get();
     return doc.exists && doc['userId'] != null;
   }
 
-  // Asignar un usuario a una propiedad, evitando asignaciones dobles
-  Future<void> assignUserToProperty(String propertyId, String userId) async {
-    // Validación: ¿el usuario ya tiene vivienda?
-    if (await isUserAssignedToAnyProperty(userId)) {
+  // Asignar un usuario a una vivienda, evitando asignaciones dobles
+  Future<void> assignUserToProperty(
+    String communityId,
+    String viviendaId,
+    String userId,
+  ) async {
+    if (await isUserAssignedToAnyProperty(communityId, userId)) {
       throw Exception('Este usuario ya está asignado a una vivienda.');
     }
-    // Validación: ¿la vivienda ya tiene usuario?
-    if (await isPropertyAssigned(propertyId)) {
+    if (await isPropertyAssigned(communityId, viviendaId)) {
       throw Exception('Esta vivienda ya tiene un usuario asignado.');
     }
-    await _propertiesRef.doc(propertyId).update({'userId': userId});
+    await _viviendasRef(communityId).doc(viviendaId).update({'userId': userId});
   }
 
-  // Desasignar un usuario de una propiedad
-  Future<void> unassignUserFromProperty(String propertyId) async {
-    await _propertiesRef.doc(propertyId).update({'userId': null});
+  // Desasignar un usuario de una vivienda
+  Future<void> unassignUserFromProperty(
+    String communityId,
+    String viviendaId,
+  ) async {
+    await _viviendasRef(communityId).doc(viviendaId).update({'userId': null});
   }
 
-  // Obtener propiedades por usuario asignado
-  Stream<List<PropertyModel>> getPropertiesByUser({required String userId}) {
-    return _propertiesRef
+  // Obtener viviendas por usuario asignado
+  Stream<List<PropertyModel>> getPropertiesByUser({
+    required String communityId,
+    required String userId,
+  }) {
+    return _viviendasRef(communityId)
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map(
@@ -118,12 +133,11 @@ class PropertyService {
         );
   }
 
-  // Obtener propiedades sin usuario asignado
+  // Obtener viviendas sin usuario asignado
   Stream<List<PropertyModel>> getUnassignedProperties({
     required String communityId,
   }) {
-    return _propertiesRef
-        .where('communityId', isEqualTo: communityId)
+    return _viviendasRef(communityId)
         .where('userId', isNull: true)
         .snapshots()
         .map(

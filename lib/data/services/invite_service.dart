@@ -18,68 +18,66 @@ class InviteService {
 
   Future<InviteModel> createInvite({
     required String communityId,
-    required String email,
     required String role,
-    required String vivienda,
+    required String viviendaId,
     int daysValid = 7,
   }) async {
     final token = _generateToken();
-    final expiresAt = DateTime.now().add(Duration(days: daysValid));
-    final docRef = await _firestore.collection('invites').add({
+    final now = DateTime.now();
+    final expiresAt = now.add(Duration(days: daysValid));
+    final docRef = await _firestore.collection('invitationTokens').add({
       'communityId': communityId,
-      'email': email,
       'role': role,
-      'vivienda': vivienda,
+      'viviendaId': viviendaId,
       'token': token,
-      'expiresAt': Timestamp.fromDate(expiresAt),
       'used': false,
+      'createdAt': Timestamp.fromDate(now),
+      'expiresAt': Timestamp.fromDate(expiresAt),
     });
     final doc = await docRef.get();
     return InviteModel.fromFirestore(doc);
   }
 
   Future<InviteModel?> getInviteByToken(String token) async {
-    final snap =
+    final query =
         await _firestore
-            .collection('invites')
+            .collection('invitationTokens')
             .where('token', isEqualTo: token)
             .limit(1)
             .get();
-    if (snap.docs.isEmpty) return null;
-    return InviteModel.fromFirestore(snap.docs.first);
+    if (query.docs.isEmpty) return null;
+    return InviteModel.fromFirestore(query.docs.first);
   }
 
   Future<void> markInviteUsed(String inviteId, String userId) async {
-    // Get the invite to check if it has a property
     final inviteDoc =
-        await _firestore.collection('invites').doc(inviteId).get();
+        await _firestore.collection('invitationTokens').doc(inviteId).get();
     final invite = InviteModel.fromFirestore(inviteDoc);
-
-    // If there's a property assigned and the role is 'user', assign the user to the property
-    if (invite.vivienda.isNotEmpty && invite.role == 'user') {
+    if (invite.viviendaId.isNotEmpty && invite.role == 'resident') {
       try {
-        await _propertyService.assignUserToProperty(invite.vivienda, userId);
+        await _propertyService.assignUserToProperty(
+          invite.communityId,
+          invite.viviendaId,
+          userId,
+        );
       } catch (e) {
-        // No marcar como usada si hay error de asignación
         rethrow;
       }
-      // Remove the pending invitation flag
-      await _propertyService.updateProperty(invite.vivienda, {
-        'invitePending': false,
-      });
     }
-
-    // Mark the invite as used
-    await _firestore.collection('invites').doc(inviteId).update({'used': true});
+    await _firestore.collection('invitationTokens').doc(inviteId).update({
+      'used': true,
+      'usedBy': userId,
+    });
+    // Si quieres actualizar la vivienda para quitar el flag de invitación pendiente:
+    // await _propertyService.updateProperty(invite.communityId, invite.viviendaId, {'invitePending': false});
   }
 
-  // Método para obtener todas las invitaciones activas
+  // Método para obtener todas las invitaciones activas (sin filtro de expiración)
   Stream<List<InviteModel>> getActiveInvites(String communityId) {
     return _firestore
-        .collection('invites')
+        .collection('invitationTokens')
         .where('communityId', isEqualTo: communityId)
         .where('used', isEqualTo: false)
-        .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
         .snapshots()
         .map(
           (snapshot) =>
@@ -93,17 +91,19 @@ class InviteService {
   Future<void> cancelInvite(String inviteId) async {
     // Get the invite to check if it has a property
     final inviteDoc =
-        await _firestore.collection('invites').doc(inviteId).get();
+        await _firestore.collection('invitationTokens').doc(inviteId).get();
     final invite = InviteModel.fromFirestore(inviteDoc);
 
     // If there's a property assigned, remove the pending flag
-    if (invite.vivienda.isNotEmpty && invite.role == 'user') {
-      await _propertyService.updateProperty(invite.vivienda, {
-        'invitePending': false,
-      });
+    if (invite.viviendaId.isNotEmpty && invite.role == 'resident') {
+      await _propertyService.updateProperty(
+        invite.communityId,
+        invite.viviendaId,
+        {'invitePending': false},
+      );
     }
 
     // Delete the invite
-    await _firestore.collection('invites').doc(inviteId).delete();
+    await _firestore.collection('invitationTokens').doc(inviteId).delete();
   }
 }

@@ -107,12 +107,10 @@ class _InvitationsListPageState extends State<InvitationsListPage> {
                 itemCount: invites.length,
                 itemBuilder: (context, index) {
                   final invite = invites[index];
-                  final daysLeft =
-                      invite.expiresAt.difference(DateTime.now()).inDays;
 
                   // Get property info if this is a property invitation
                   return FutureBuilder<String>(
-                    future: _getPropertyInfo(invite.vivienda),
+                    future: _getPropertyInfo(communityId, invite.viviendaId),
                     builder: (context, propertySnapshot) {
                       final propertyInfo = propertySnapshot.data ?? '';
 
@@ -128,17 +126,16 @@ class _InvitationsListPageState extends State<InvitationsListPage> {
                                 : Icons.home,
                             color: Theme.of(context).primaryColor,
                           ),
-                          title: Text(invite.email),
+                          title: Text('Invitación'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Rol: ${invite.role == 'admin' ? 'Administrador' : 'Usuario'}',
                               ),
-                              if (invite.role == 'user' &&
+                              if (invite.role == 'resident' &&
                                   propertyInfo.isNotEmpty)
                                 Text('Vivienda: $propertyInfo'),
-                              Text('Expira en: $daysLeft días'),
                             ],
                           ),
                           trailing: IconButton(
@@ -158,13 +155,16 @@ class _InvitationsListPageState extends State<InvitationsListPage> {
     );
   }
 
-  Future<String> _getPropertyInfo(String propertyId) async {
-    if (propertyId.isEmpty) return '';
+  Future<String> _getPropertyInfo(String communityId, String viviendaId) async {
+    if (viviendaId.isEmpty) return '';
 
     try {
-      final property = await _propertyService.getPropertyById(propertyId);
+      final property = await _propertyService.getPropertyById(
+        communityId,
+        viviendaId,
+      );
       if (property != null) {
-        return property.fullIdentifier;
+        return property.number;
       }
     } catch (e) {
       print('Error getting property info: $e');
@@ -180,7 +180,7 @@ class _InvitationsListPageState extends State<InvitationsListPage> {
           (context) => AlertDialog(
             title: const Text('Cancelar invitación'),
             content: Text(
-              '¿Estás seguro de que quieres cancelar la invitación enviada a ${invite.email}?',
+              '¿Estás seguro de que quieres cancelar esta invitación?',
             ),
             actions: [
               TextButton(

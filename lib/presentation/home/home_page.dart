@@ -8,6 +8,7 @@ import 'package:vecigest/presentation/documents/doc_list_page.dart'; // Correcte
 import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected path
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Nueva importación
 import 'package:vecigest/presentation/properties/property_list_page.dart'; // Importación para propiedades
+import 'package:vecigest/data/services/user_role_service.dart';
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
@@ -144,177 +145,198 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final user = FirebaseAuth.instance.currentUser;
-    final options = [
-      {'label': 'Chat', 'icon': Icons.chat, 'color': Colors.blue, 'route': 0},
-      {
-        'label': 'Incidencias',
-        'icon': Icons.report_problem,
-        'color': Colors.orange,
-        'route': 1,
-      },
-      {
-        'label': 'Documentos',
-        'icon': Icons.description,
-        'color': Colors.green,
-        'route': 2,
-      },
-      {
-        'label': 'Encuestas',
-        'icon': Icons.poll,
-        'color': Colors.purple,
-        'route': 3,
-      },
-      {
-        'label': 'Reservas',
-        'icon': Icons.event_available,
-        'color': Colors.teal,
-        'route': 4,
-      },
-      {
-        'label': 'Viviendas',
-        'icon': Icons.apartment,
-        'color': Colors.amber,
-        'route': 5,
-      },
-    ];
-    if (_currentIndex < 0 || _currentIndex >= _pages.length) {
-      // Dashboard
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('VeciGest'),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: _openSettings,
-              tooltip: 'Ajustes',
+    // Obtener el rol del usuario para ocultar viviendas si es residente
+    return FutureBuilder<Map<String, dynamic>?>(
+      future:
+          user != null
+              ? UserRoleService().getUserRoleAndCommunity(user.uid)
+              : Future.value(null),
+      builder: (context, snapshot) {
+        final userRole = snapshot.data;
+        // Opciones base
+        final options = [
+          {
+            'label': 'Chat',
+            'icon': Icons.chat,
+            'color': Colors.blue,
+            'route': 0,
+          },
+          {
+            'label': 'Incidencias',
+            'icon': Icons.report_problem,
+            'color': Colors.orange,
+            'route': 1,
+          },
+          {
+            'label': 'Documentos',
+            'icon': Icons.description,
+            'color': Colors.green,
+            'route': 2,
+          },
+          {
+            'label': 'Encuestas',
+            'icon': Icons.poll,
+            'color': Colors.purple,
+            'route': 3,
+          },
+          {
+            'label': 'Reservas',
+            'icon': Icons.event_available,
+            'color': Colors.teal,
+            'route': 4,
+          },
+        ];
+        // Solo admins ven el cuadrado de viviendas
+        if (userRole != null && userRole['role'] != 'resident') {
+          options.add({
+            'label': 'Viviendas',
+            'icon': Icons.apartment,
+            'color': Colors.amber,
+            'route': 5,
+          });
+        }
+        if (_currentIndex < 0 || _currentIndex >= _pages.length) {
+          // Dashboard
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('VeciGest'),
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: _openSettings,
+                  tooltip: 'Ajustes',
+                ),
+              ],
             ),
-          ],
-        ),
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: colorScheme.primary.withOpacity(0.15),
-                      child:
-                          user?.email != null
-                              ? Text(
-                                user!.email![0].toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                              : Icon(
-                                Icons.person,
-                                size: 32,
-                                color: colorScheme.primary,
-                              ),
+            body: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.email != null &&
-                                    user?.email!.isNotEmpty == true
-                                ? '¡Hola, ${user?.email!.split('@')[0]}!'
-                                : '¡Bienvenido!',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor: colorScheme.primary.withOpacity(
+                            0.15,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '¿Qué quieres hacer hoy?',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
-                  mainAxisSpacing: 24,
-                  crossAxisSpacing: 24,
-                  children:
-                      options.map((opt) {
-                        return Material(
-                          color: (opt['color'] as Color).withOpacity(0.13),
-                          borderRadius: BorderRadius.circular(24),
-                          elevation: 4,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(24),
-                            onTap: () {
-                              setState(() {
-                                _currentIndex = opt['route'] as int;
-                              });
-                            },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  opt['icon'] as IconData,
-                                  size: 54,
-                                  color: opt['color'] as Color,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  opt['label'] as String,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: colorScheme.onSurface,
+                          child:
+                              user?.email != null
+                                  ? Text(
+                                    user!.email![0].toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                  : Icon(
+                                    Icons.person,
+                                    size: 32,
+                                    color: colorScheme.primary,
                                   ),
-                                ),
-                              ],
-                            ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.email != null &&
+                                        user?.email!.isNotEmpty == true
+                                    ? '¡Hola, ${user?.email!.split('@')[0]}!'
+                                    : '¡Bienvenido!',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '¿Qué quieres hacer hoy?',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                           ),
-                        );
-                      }).toList(),
-                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 8,
+                      ),
+                      mainAxisSpacing: 24,
+                      crossAxisSpacing: 24,
+                      children:
+                          options.map((opt) {
+                            return Material(
+                              color: (opt['color'] as Color).withOpacity(0.13),
+                              borderRadius: BorderRadius.circular(24),
+                              elevation: 4,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(24),
+                                onTap: () {
+                                  setState(() {
+                                    _currentIndex = opt['route'] as int;
+                                  });
+                                },
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      opt['icon'] as IconData,
+                                      size: 54,
+                                      color: opt['color'] as Color,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      opt['label'] as String,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      );
-    } else {
-      // Página seleccionada
-      return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => setState(() => _currentIndex = -1),
-          ),
-          title: const Text('VeciGest'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: _openSettings,
-              tooltip: 'Ajustes',
             ),
-          ],
-        ),
-        body: _pages[_currentIndex],
-      );
-    }
+          );
+        } else {
+          // Página seleccionada
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _currentIndex = -1),
+              ),
+              title: const Text('VeciGest'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: _openSettings,
+                  tooltip: 'Ajustes',
+                ),
+              ],
+            ),
+            body: _pages[_currentIndex],
+          );
+        }
+      },
+    );
   }
 }

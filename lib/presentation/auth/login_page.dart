@@ -11,10 +11,72 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Bienvenido a VeciGest'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/register');
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+                child: const Text('Registrar administrador'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const _GeneralLoginForm(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+                child: const Text('Iniciar sesión general'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const _TokenLoginForm()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+                child: const Text('Entrar por vivienda (token)'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GeneralLoginForm extends StatefulWidget {
+  const _GeneralLoginForm({super.key});
+  @override
+  State<_GeneralLoginForm> createState() => _GeneralLoginFormState();
+}
+
+class _GeneralLoginFormState extends State<_GeneralLoginForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-
   bool _isLoading = false;
   String? _error;
   bool _showPassword = false;
@@ -33,16 +95,10 @@ class _LoginPageState extends State<LoginPage> {
         final userRole = await UserRoleService().getUserRoleAndCommunity(
           user.uid,
         );
-
         if (userRole != null && mounted) {
           if (userRole['role'] == 'admin') {
-            // Si es admin, verificamos si tiene comunidad
             if (userRole['communityId'] == null ||
                 userRole['communityId'].isEmpty) {
-              print(
-                'DEBUG: Admin sin comunidad detectado, navegando a /admin-no-community',
-              );
-              // No tiene comunidad, redirigir a la página informativa y pasar argumentos
               Navigator.of(context).pushReplacementNamed(
                 '/admin-no-community',
                 arguments: {
@@ -52,13 +108,19 @@ class _LoginPageState extends State<LoginPage> {
                 },
               );
             } else {
-              print('DEBUG: Admin con comunidad, navegando a /home');
-              // Tiene comunidad, va a la home de admin
               Navigator.of(context).pushReplacementNamed('/home');
             }
           } else {
-            // Es usuario normal, va al dashboard de usuario
-            Navigator.of(context).pushReplacementNamed('/user-dashboard');
+            // Residentes también van al home
+            if (userRole['viviendaId'] != null &&
+                userRole['viviendaId'].toString().isNotEmpty) {
+              Navigator.of(context).pushReplacementNamed('/home');
+            } else {
+              setState(() {
+                _error = 'No tienes ninguna vivienda asignada.';
+              });
+              await FirebaseAuth.instance.signOut();
+            }
           }
         }
       }
@@ -76,11 +138,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Quita la flecha hacia atrás
-      appBar: AppBar(
-        title: const Text('Iniciar sesión'),
-        automaticallyImplyLeading: false,
-      ),
+      appBar: AppBar(title: const Text('Iniciar sesión general')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -116,49 +174,79 @@ class _LoginPageState extends State<LoginPage> {
               const CircularProgressIndicator()
             else
               ElevatedButton(onPressed: _login, child: const Text('Entrar')),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: Image.asset(
-                'assets/google_logo.png',
-                height: 24,
-                width: 24,
-              ),
-              label: const Text('Iniciar sesión con Google'),
-              onPressed: () async {
-                setState(() {
-                  _isLoading = true;
-                  _error = null;
-                });
-                try {
-                  final userCredential = await _authService.signInWithGoogle();
-                  if (userCredential != null && mounted) {
-                    // Al hacer login con Google, mejor ir al splash que decidirá a dónde dirigir
-                    Navigator.of(context).pushReplacementNamed('/');
-                  }
-                } catch (e) {
-                  setState(() {
-                    _error = e.toString();
-                  });
-                } finally {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                minimumSize: const Size(double.infinity, 48),
-                side: const BorderSide(color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TokenLoginForm extends StatefulWidget {
+  const _TokenLoginForm({super.key});
+  @override
+  State<_TokenLoginForm> createState() => _TokenLoginFormState();
+}
+
+class _TokenLoginFormState extends State<_TokenLoginForm> {
+  final TextEditingController _tokenController = TextEditingController();
+  String? _error;
+  bool _loading = false;
+
+  void _checkToken() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final token = _tokenController.text.trim();
+    if (token.isEmpty) {
+      setState(() {
+        _error = 'El token no puede estar vacío.';
+        _loading = false;
+      });
+      return;
+    }
+    // Debug print to verify token value
+    print('[DEBUG] Navigating to /invite-register with token: "$token"');
+    try {
+      Navigator.of(
+        context,
+      ).pushReplacementNamed('/invite-register', arguments: token);
+    } catch (e) {
+      setState(() {
+        _error = 'Token inválido o expirado.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Entrar por vivienda (token)')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _tokenController,
+              decoration: const InputDecoration(
+                labelText: 'Introduce el token de invitación',
               ),
             ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed('/register');
-              },
-              child: const Text('¿No tienes cuenta? Regístrate'),
-            ),
+            const SizedBox(height: 24),
+            if (_error != null)
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            if (_loading)
+              const CircularProgressIndicator()
+            else
+              ElevatedButton(
+                onPressed: _checkToken,
+                child: const Text('Validar y registrarse'),
+              ),
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vecigest/domain/models/property_model.dart';
 import 'package:vecigest/data/services/property_service.dart';
+import 'package:vecigest/data/services/invite_service.dart';
 
 class PropertyDetailPage extends StatefulWidget {
   const PropertyDetailPage({super.key});
@@ -128,8 +129,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
           floor: floor,
           block: block,
           size: 0,
-          ownerId:
-              user.uid, // Este podría ser diferente dependiendo de la lógica del negocio
+          ownerId: user.uid,
           additionalInfo: additionalInfo,
         );
 
@@ -141,12 +141,13 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
         }
       } else {
         // Edit mode
-        await _propertyService.updateProperty(_propertyModel!.id, {
-          'number': number,
-          'floor': floor,
-          'block': block,
-          'additionalInfo': additionalInfo,
-        });
+        await _propertyService
+            .updateProperty(_communityId, _propertyModel!.viviendaId, {
+              'number': number,
+              'floor': floor,
+              'block': block,
+              'additionalInfo': additionalInfo,
+            });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -172,7 +173,72 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditMode = _propertyModel != null;
+    final isEditMode =
+        _propertyModel != null &&
+        (ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?)?['showDetails'] !=
+            true;
+    final showDetails =
+        (ModalRoute.of(context)?.settings.arguments
+            as Map<String, dynamic>?)?['showDetails'] ==
+        true;
+
+    if (showDetails && _propertyModel != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Detalles de la vivienda')),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _propertyModel!.fullIdentifier,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 16),
+              if (_propertyModel!.userId != null) ...[
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: Text('Asignado a:'),
+                  subtitle: Text(
+                    _assignedUserEmail ?? 'Usuario ${_propertyModel!.userId}',
+                  ),
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Invitar usuario'),
+                  onPressed: () async {
+                    // Aquí deberías crear el token en Firestore y mostrarlo/copiarlo
+                    final token = await _generateInviteToken();
+                    if (mounted) {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: const Text('Token de invitación'),
+                              content: SelectableText(token),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cerrar'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
+                  },
+                ),
+              ],
+              const SizedBox(height: 24),
+              if (_propertyModel!.additionalInfo != null &&
+                  _propertyModel!.additionalInfo!['notes'] != null)
+                Text('Notas: ${_propertyModel!.additionalInfo!['notes']}'),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -326,7 +392,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 onPressed: () async {
                   Navigator.pop(context);
                   try {
-                    await _propertyService.deleteProperty(property.id);
+                    await _propertyService.deleteProperty(
+                      _communityId,
+                      property.viviendaId,
+                    );
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -352,7 +421,6 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
 
   void _showUnassignDialog() {
     if (_propertyModel == null || _propertyModel!.userId == null) return;
-
     showDialog(
       context: context,
       builder:
@@ -370,18 +438,16 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 onPressed: () async {
                   Navigator.pop(context);
                   setState(() => _isLoading = true);
-
                   try {
                     await _propertyService.unassignUserFromProperty(
-                      _propertyModel!.id,
+                      _communityId,
+                      _propertyModel!.viviendaId,
                     );
-
                     setState(() {
                       _propertyModel = _propertyModel!.copyWith(userId: null);
                       _assignedUserEmail = null;
                       _isLoading = false;
                     });
-
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -403,5 +469,15 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
             ],
           ),
     );
+  }
+
+  Future<String> _generateInviteToken() async {
+    // Genera un token de invitación usando InviteService y los nuevos campos
+    final invite = await InviteService().createInvite(
+      communityId: _communityId,
+      role: 'resident',
+      viviendaId: _propertyModel!.viviendaId,
+    );
+    return invite.token;
   }
 }

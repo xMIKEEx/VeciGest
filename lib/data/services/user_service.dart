@@ -25,7 +25,7 @@ class UserService {
     required String displayName,
     required String communityId,
     required String role,
-    String? vivienda,
+    String? viviendaId,
   }) async {
     await _firestore.collection('users').doc(uid).set({
       'uid': uid,
@@ -33,7 +33,7 @@ class UserService {
       'displayName': displayName,
       'role': role,
       'communityId': communityId,
-      'vivienda': vivienda ?? '',
+      'viviendaId': viviendaId ?? '',
       'createdAt': FieldValue.serverTimestamp(),
     });
   }

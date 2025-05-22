@@ -59,6 +59,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
         name: _nameCtrl.text.trim(),
         address: _addressCtrl.text.trim(),
         contactEmail: _emailCtrl.text.trim(),
+        createdBy: _userId!,
       );
       // Asociar el usuario admin a la comunidad creada
       if (_userId != null && _userEmail != null && _displayName != null) {

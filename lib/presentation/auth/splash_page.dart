@@ -31,8 +31,8 @@ class SplashPage extends StatelessWidget {
                 Navigator.of(context).pushReplacementNamed('/home');
               }
             } else {
-              // Es un usuario normal, va al dashboard de usuario
-              Navigator.of(context).pushReplacementNamed('/user-dashboard');
+              // Es un usuario normal, va al home
+              Navigator.of(context).pushReplacementNamed('/home');
             }
           } else {
             // El usuario no tiene perfil en Firestore, lo enviamos a crear uno

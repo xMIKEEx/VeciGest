@@ -58,18 +58,15 @@ class _PropertyListPageState extends State<PropertyListPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('Error: {snapshot.error}'));
         }
-
         final communityId = snapshot.data ?? '';
         if (communityId.isEmpty) {
           return const Center(
             child: Text('No se ha podido determinar la comunidad'),
           );
         }
-
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false, // Remove back arrow
@@ -97,11 +94,9 @@ class _PropertyListPageState extends State<PropertyListPage> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-
               if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
+                return Center(child: Text('Error: {snapshot.error}'));
               }
-
               final properties = snapshot.data ?? [];
               if (properties.isEmpty) {
                 return Center(
@@ -154,7 +149,6 @@ class _PropertyListPageState extends State<PropertyListPage> {
                   ),
                 );
               }
-
               return Column(
                 children: [
                   // Header with actions
@@ -217,7 +211,6 @@ class _PropertyListPageState extends State<PropertyListPage> {
                       ],
                     ),
                   ),
-
                   // List of properties
                   Expanded(
                     child: ListView.builder(
@@ -243,6 +236,8 @@ class _PropertyListPageState extends State<PropertyListPage> {
                                 arguments: {
                                   'property': property,
                                   'communityId': communityId,
+                                  'showDetails':
+                                      true, // Para distinguir modo detalle
                                 },
                               );
                             },
@@ -272,7 +267,8 @@ class _PropertyListPageState extends State<PropertyListPage> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          property.fullIdentifier,
+                                          property
+                                              .number, // Use number as identifier
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
@@ -287,22 +283,6 @@ class _PropertyListPageState extends State<PropertyListPage> {
                                     ],
                                   ),
                                   const Divider(height: 24),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.straighten,
-                                        size: 16,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Tamaño: ${property.size} m²',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  // Property status indicator
                                   _buildPropertyStatusIndicator(property),
                                 ],
                               ),
@@ -412,7 +392,7 @@ class _PropertyListPageState extends State<PropertyListPage> {
             arguments: {'property': property, 'communityId': communityId},
           );
         } else if (value == 'delete') {
-          _showDeleteDialog(property);
+          _showDeleteDialog(property, communityId);
         }
       },
       itemBuilder:
@@ -441,14 +421,14 @@ class _PropertyListPageState extends State<PropertyListPage> {
     );
   }
 
-  void _showDeleteDialog(PropertyModel property) {
+  void _showDeleteDialog(PropertyModel property, String communityId) {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             title: const Text('Eliminar vivienda'),
             content: Text(
-              '¿Estás seguro de que quieres eliminar la vivienda ${property.fullIdentifier}?',
+              '¿Estás seguro de que quieres eliminar la vivienda ${property.number}?',
             ),
             actions: [
               TextButton(
@@ -459,7 +439,10 @@ class _PropertyListPageState extends State<PropertyListPage> {
                 onPressed: () async {
                   Navigator.pop(context);
                   try {
-                    await _propertyService.deleteProperty(property.id);
+                    await _propertyService.deleteProperty(
+                      communityId,
+                      property.viviendaId,
+                    );
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

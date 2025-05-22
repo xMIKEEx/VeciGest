@@ -10,7 +10,6 @@ import 'package:vecigest/presentation/documents/doc_list_page.dart';
 import 'package:vecigest/presentation/polls/poll_list_page.dart';
 import 'package:vecigest/presentation/auth/create_community_page.dart';
 import 'package:vecigest/presentation/auth/invite_register_page.dart';
-import 'package:vecigest/presentation/home/user_dashboard_page.dart';
 import 'package:vecigest/presentation/auth/admin_no_community_page.dart';
 
 // Added imports for new pages (assuming these files and classes exist)
@@ -53,7 +52,6 @@ class AppRoutes {
   static const String invitations = '/invitations';
   static const String createCommunity = '/create-community';
   static const String inviteRegister = '/invite-register';
-  static const String userDashboard = '/user-dashboard';
   static const String adminNoCommunity = '/admin-no-community';
 
   // Added route constants
@@ -113,8 +111,6 @@ class AppRoutes {
           );
         }
         return _errorRoute(settings.name, 'Token de invitación requerido');
-      case userDashboard:
-        return MaterialPageRoute(builder: (_) => const UserDashboardPage());
       case adminNoCommunity:
         return MaterialPageRoute(builder: (_) => const AdminNoCommunityPage());
 
