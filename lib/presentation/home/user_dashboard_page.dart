@@ -76,7 +76,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               TextFormField(
                 controller: _nameCtrl,
                 decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -87,7 +88,9 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _extraCtrl,
-                decoration: const InputDecoration(labelText: 'Información complementaria'),
+                decoration: const InputDecoration(
+                  labelText: 'Información complementaria',
+                ),
                 maxLines: 2,
               ),
               const SizedBox(height: 24),

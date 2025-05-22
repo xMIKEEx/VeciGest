@@ -27,7 +27,9 @@ class _EditCommunityPageState extends State<EditCommunityPage> {
     setState(() => _loading = true);
     try {
       // Suponiendo que tienes un CommunityService con getCommunityById
-      final community = await CommunityService().getCommunityById(widget.communityId);
+      final community = await CommunityService().getCommunityById(
+        widget.communityId,
+      );
       if (community != null) {
         _nameCtrl.text = community.name;
         _addressCtrl.text = community.address;
@@ -78,20 +80,27 @@ class _EditCommunityPageState extends State<EditCommunityPage> {
             children: [
               TextFormField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Nombre de la comunidad'),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre de la comunidad',
+                ),
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _addressCtrl,
                 decoration: const InputDecoration(labelText: 'Dirección'),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailCtrl,
-                decoration: const InputDecoration(labelText: 'Email de contacto'),
-                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Email de contacto',
+                ),
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 24),
