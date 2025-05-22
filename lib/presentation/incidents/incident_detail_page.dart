@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:vecigest/domain/models/incident_model.dart';
 import 'package:vecigest/data/services/incident_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vecigest/data/services/user_role_service.dart';
+import 'package:vecigest/presentation/incidents/new_incident_page.dart';
 
 extension StringCap on String {
   String capitalize() => isEmpty ? this : this[0].toUpperCase() + substring(1);
@@ -18,11 +21,23 @@ class IncidentDetailPage extends StatefulWidget {
 class _IncidentDetailPageState extends State<IncidentDetailPage> {
   late String _selectedStatus;
   bool _loading = false;
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _selectedStatus = widget.incident.status;
+    _checkIfAdmin();
+  }
+
+  Future<void> _checkIfAdmin() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final role = await UserRoleService().getUserRoleAndCommunity(user.uid);
+      if (role != null && role['role'] == 'admin') {
+        setState(() => _isAdmin = true);
+      }
+    }
   }
 
   @override
@@ -93,6 +108,63 @@ class _IncidentDetailPageState extends State<IncidentDetailPage> {
                       Navigator.pop(context, true);
                     },
                   ),
+            ],
+            if (_isAdmin) ...[
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Editar'),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => NewIncidentPage(incident: widget.incident),
+                        ),
+                      );
+                      if (result == true) Navigator.pop(context, true);
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Eliminar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder:
+                            (ctx) => AlertDialog(
+                              title: const Text('Eliminar incidencia'),
+                              content: const Text(
+                                '¿Seguro que quieres eliminar esta incidencia?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Eliminar'),
+                                ),
+                              ],
+                            ),
+                      );
+                      if (confirm == true) {
+                        await IncidentService().deleteIncident(
+                          widget.incident.id,
+                        );
+                        if (mounted) Navigator.pop(context, true);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
             ],
           ],
         ),

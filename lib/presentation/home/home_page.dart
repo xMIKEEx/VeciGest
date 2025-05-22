@@ -9,6 +9,8 @@ import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected p
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Nueva importación
 import 'package:vecigest/presentation/properties/property_list_page.dart'; // Importación para propiedades
 import 'package:vecigest/data/services/user_role_service.dart';
+import 'package:vecigest/presentation/home/user_dashboard_page.dart';
+import 'package:vecigest/presentation/auth/edit_community_page.dart';
 import '../../main.dart';
 
 class HomePage extends StatefulWidget {
@@ -72,7 +74,14 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                         : null,
-                onTap: () {}, // Aquí puedes navegar a una pantalla de perfil
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const UserDashboardPage(),
+                    ),
+                  );
+                },
               ),
               SwitchListTile(
                 secondary: Icon(
@@ -134,6 +143,35 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
+              // Opción para editar comunidad (solo visible para admins)
+              if (user != null)
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: UserRoleService().getUserRoleAndCommunity(user.uid),
+                  builder: (context, snapshot) {
+                    final userRole = snapshot.data;
+                    if (userRole != null && userRole['role'] == 'admin') {
+                      return ListTile(
+                        leading: Icon(
+                          Icons.apartment,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        title: const Text('Editar comunidad'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => EditCommunityPage(
+                                    communityId: userRole['communityId'],
+                                  ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return Container();
+                  },
+                ),
             ],
           ),
         );

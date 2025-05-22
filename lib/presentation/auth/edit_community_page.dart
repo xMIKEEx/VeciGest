@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vecigest/data/services/community_service.dart';
 
-class UserDashboardPage extends StatefulWidget {
-  const UserDashboardPage({super.key});
+class EditCommunityPage extends StatefulWidget {
+  final String communityId;
+  const EditCommunityPage({super.key, required this.communityId});
 
   @override
-  State<UserDashboardPage> createState() => _UserDashboardPageState();
+  State<EditCommunityPage> createState() => _EditCommunityPageState();
 }
 
-class _UserDashboardPageState extends State<UserDashboardPage> {
+class _EditCommunityPageState extends State<EditCommunityPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _extraCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadUser();
+    _loadCommunity();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _loadCommunity() async {
     setState(() => _loading = true);
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        _nameCtrl.text = user.displayName ?? '';
-        _emailCtrl.text = user.email ?? '';
-        // Aquí podrías cargar información extra desde Firestore si la tienes
+      // Suponiendo que tienes un CommunityService con getCommunityById
+      final community = await CommunityService().getCommunityById(widget.communityId);
+      if (community != null) {
+        _nameCtrl.text = community.name;
+        _addressCtrl.text = community.address;
+        _emailCtrl.text = community.contactEmail;
       }
     } catch (e) {
-      setState(() => _error = 'Error al cargar usuario: $e');
+      setState(() => _error = 'Error al cargar la comunidad: $e');
     } finally {
       setState(() => _loading = false);
     }
@@ -42,14 +44,15 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await user.updateDisplayName(_nameCtrl.text.trim());
-        // Aquí podrías guardar información extra en Firestore
-      }
+      await CommunityService().updateCommunity(
+        id: widget.communityId,
+        name: _nameCtrl.text.trim(),
+        address: _addressCtrl.text.trim(),
+        contactEmail: _emailCtrl.text.trim(),
+      );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      setState(() => _error = 'Error al actualizar usuario: $e');
+      setState(() => _error = 'Error al actualizar la comunidad: $e');
     } finally {
       setState(() => _loading = false);
     }
@@ -58,15 +61,15 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _addressCtrl.dispose();
     _emailCtrl.dispose();
-    _extraCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar usuario')),
+      appBar: AppBar(title: const Text('Editar comunidad')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -75,20 +78,21 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
             children: [
               TextFormField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Nombre'),
+                decoration: const InputDecoration(labelText: 'Nombre de la comunidad'),
+                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _addressCtrl,
+                decoration: const InputDecoration(labelText: 'Dirección'),
                 validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailCtrl,
-                enabled: false,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _extraCtrl,
-                decoration: const InputDecoration(labelText: 'Información complementaria'),
-                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'Email de contacto'),
+                validator: (v) => v == null || v.trim().isEmpty ? 'Obligatorio' : null,
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 24),
               if (_error != null)

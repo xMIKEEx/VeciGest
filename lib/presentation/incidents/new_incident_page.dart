@@ -7,7 +7,8 @@ import 'package:vecigest/data/services/document_service.dart'; // For uploadInci
 import 'dart:io';
 
 class NewIncidentPage extends StatefulWidget {
-  const NewIncidentPage({super.key});
+  final IncidentModel? incident;
+  const NewIncidentPage({super.key, this.incident});
 
   @override
   State<NewIncidentPage> createState() => _NewIncidentPageState();
@@ -21,6 +22,16 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
   final ImagePicker _picker = ImagePicker();
   List<XFile> _pickedImages = [];
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.incident != null) {
+      _titleCtrl.text = widget.incident!.title;
+      _descCtrl.text = widget.incident!.description;
+      // NOTA: No se precargan imágenes ya subidas, solo las nuevas
+    }
+  }
 
   Future<void> _pickImages() async {
     try {
@@ -44,35 +55,60 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Usuario no autenticado');
-      final inc = IncidentModel(
-        id: '', // Firestore will generate this
-        title: _titleCtrl.text.trim(),
-        description: _descCtrl.text.trim(),
-        createdBy: user.uid,
-        status: 'open', // Default status
-        photosUrls: [], // Will be updated after upload
-        createdAt: DateTime.now(),
-        updatedAt: null,
-        assignedTo: null,
-      );
-      final createdIncident = await _incidentService.createIncident(inc);
-      // Subir fotos y actualizar URLs
-      List<String> uploadedPhotoUrls = [];
-      if (_pickedImages.isNotEmpty) {
-        for (final file in _pickedImages) {
-          // Assuming DocumentService.uploadIncidentPhoto handles file upload and returns URL
-          // And that it takes incidentId and File as parameters.
-          final url = await DocumentService.uploadIncidentPhoto(
-            createdIncident.id,
-            File(file.path),
-          );
-          uploadedPhotoUrls.add(url);
+      if (widget.incident == null) {
+        // Crear nueva incidencia
+        final inc = IncidentModel(
+          id: '',
+          title: _titleCtrl.text.trim(),
+          description: _descCtrl.text.trim(),
+          createdBy: user.uid,
+          status: 'open',
+          photosUrls: [],
+          createdAt: DateTime.now(),
+          updatedAt: null,
+          assignedTo: null,
+        );
+        final createdIncident = await _incidentService.createIncident(inc);
+        // Subir fotos y actualizar URLs
+        List<String> uploadedPhotoUrls = [];
+        if (_pickedImages.isNotEmpty) {
+          for (final file in _pickedImages) {
+            final url = await DocumentService.uploadIncidentPhoto(
+              createdIncident.id,
+              File(file.path),
+            );
+            uploadedPhotoUrls.add(url);
+          }
+          if (uploadedPhotoUrls.isNotEmpty) {
+            await _incidentService.updateIncidentPhotosUrls(
+              createdIncident.id,
+              uploadedPhotoUrls,
+            );
+          }
         }
-        if (uploadedPhotoUrls.isNotEmpty) {
-          await _incidentService.updateIncidentPhotosUrls(
-            createdIncident.id,
-            uploadedPhotoUrls,
-          );
+      } else {
+        // Editar incidencia existente
+        await _incidentService.updateIncidentFields(widget.incident!.id, {
+          'title': _titleCtrl.text.trim(),
+          'description': _descCtrl.text.trim(),
+          'updatedAt': DateTime.now(),
+        });
+        // Subir nuevas fotos si las hay
+        if (_pickedImages.isNotEmpty) {
+          List<String> uploadedPhotoUrls = [];
+          for (final file in _pickedImages) {
+            final url = await DocumentService.uploadIncidentPhoto(
+              widget.incident!.id,
+              File(file.path),
+            );
+            uploadedPhotoUrls.add(url);
+          }
+          if (uploadedPhotoUrls.isNotEmpty) {
+            await _incidentService.updateIncidentPhotosUrls(
+              widget.incident!.id,
+              [...?widget.incident!.photosUrls, ...uploadedPhotoUrls],
+            );
+          }
         }
       }
       setState(() => _loading = false);
@@ -163,7 +199,11 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
                       const SizedBox(height: 32),
                       ElevatedButton(
                         onPressed: _submit,
-                        child: const Text('Crear incidencia'),
+                        child: Text(
+                          widget.incident == null
+                              ? 'Crear incidencia'
+                              : 'Guardar cambios',
+                        ),
                       ),
                     ],
                   ),

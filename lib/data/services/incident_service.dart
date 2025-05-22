@@ -90,4 +90,16 @@ class IncidentService {
       throw Exception('Error al eliminar la incidencia: $e');
     }
   }
+
+  // Actualizar campos arbitrarios de una incidencia
+  Future<void> updateIncidentFields(
+    String incidentId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _incidentsRef.doc(incidentId).update(data);
+    } catch (e) {
+      throw Exception('Error al actualizar la incidencia: $e');
+    }
+  }
 }

@@ -20,4 +20,23 @@ class CommunityService {
     final doc = await docRef.get();
     return CommunityModel.fromFirestore(doc);
   }
+
+  Future<CommunityModel?> getCommunityById(String id) async {
+    final doc = await _firestore.collection('communities').doc(id).get();
+    if (!doc.exists) return null;
+    return CommunityModel.fromFirestore(doc);
+  }
+
+  Future<void> updateCommunity({
+    required String id,
+    required String name,
+    required String address,
+    required String contactEmail,
+  }) async {
+    await _firestore.collection('communities').doc(id).update({
+      'name': name,
+      'address': address,
+      'contactEmail': contactEmail,
+    });
+  }
 }

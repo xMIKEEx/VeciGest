@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 class _GeneralLoginForm extends StatefulWidget {
-  const _GeneralLoginForm({super.key});
+  const _GeneralLoginForm();
   @override
   State<_GeneralLoginForm> createState() => _GeneralLoginFormState();
 }
@@ -182,7 +182,7 @@ class _GeneralLoginFormState extends State<_GeneralLoginForm> {
 }
 
 class _TokenLoginForm extends StatefulWidget {
-  const _TokenLoginForm({super.key});
+  const _TokenLoginForm();
   @override
   State<_TokenLoginForm> createState() => _TokenLoginFormState();
 }
