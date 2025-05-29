@@ -5,11 +5,14 @@ import 'package:vecigest/data/services/incident_service.dart';
 import 'package:vecigest/domain/models/incident_model.dart';
 import 'package:vecigest/utils/routes.dart';
 import 'package:vecigest/presentation/incidents/new_incident_page.dart';
+import 'package:vecigest/presentation/incidents/incident_detail_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
 
 class IncidentListPage extends StatefulWidget {
-  const IncidentListPage({super.key});
+  final Function(Widget)? onNavigate;
+
+  const IncidentListPage({super.key, this.onNavigate});
 
   @override
   State<IncidentListPage> createState() => _IncidentListPageState();
@@ -43,14 +46,20 @@ class _IncidentListPageState extends State<IncidentListPage> {
           _isAdmin
               ? FloatingActionButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NewIncidentPage()),
-                  );
+                  if (widget.onNavigate != null) {
+                    widget.onNavigate!(const NewIncidentPage());
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NewIncidentPage(),
+                      ),
+                    );
+                  }
                 },
                 backgroundColor: colorScheme.primary,
-                child: const Icon(Icons.add),
                 tooltip: 'Crear incidencia',
+                child: const Icon(Icons.add),
               )
               : null,
       body: Container(
@@ -95,70 +104,121 @@ class _IncidentListPageState extends State<IncidentListPage> {
               );
             }
             return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
               itemCount: incidents.length,
               itemBuilder: (ctx, i) {
                 final inc = incidents[i];
                 return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 6,
+                  margin: const EdgeInsets.only(bottom: 20),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(22),
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 18,
-                      horizontal: 22,
-                    ),
-                    title: Text(
-                      inc.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 19,
+                  color: colorScheme.surfaceContainerHighest,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () {
+                      if (widget.onNavigate != null) {
+                        widget.onNavigate!(IncidentDetailPage(incident: inc));
+                      } else {
+                        Navigator.pushNamed(
+                          ctx,
+                          AppRoutes.incidentDetail,
+                          arguments: inc,
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 22,
+                        horizontal: 24,
                       ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             Icons.report_problem,
-                            size: 20,
+                            size: 32,
                             color: colorScheme.primary,
                           ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  inc.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    fontFamily: 'Inter',
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  inc.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.7,
+                                    ),
+                                    fontSize: 15,
+                                    fontFamily: 'Inter',
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Chip(
+                                        label: Text(
+                                          'Estado: ${inc.status}',
+                                          style: TextStyle(
+                                            color: colorScheme.onPrimary,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: 'Inter',
+                                          ),
+                                        ),
+                                        backgroundColor: colorScheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 16,
+                                      color: colorScheme.onSurface.withOpacity(
+                                        0.6,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        DateFormat(
+                                          'dd/MM/yyyy HH:mm',
+                                        ).format(inc.createdAt),
+                                        style: TextStyle(
+                                          color: colorScheme.onSurface
+                                              .withOpacity(0.6),
+                                          fontFamily: 'Inter',
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Estado: ${inc.status}',
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
                           Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            DateFormat(
-                              'dd/MM/yyyy HH:mm',
-                            ).format(inc.createdAt),
-                            style: TextStyle(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                            Icons.chevron_right,
+                            size: 32,
+                            color: colorScheme.primary,
                           ),
                         ],
                       ),
                     ),
-                    trailing: const Icon(Icons.chevron_right, size: 28),
-                    onTap:
-                        () => Navigator.pushNamed(
-                          ctx,
-                          AppRoutes.incidentDetail,
-                          arguments: inc,
-                        ),
                   ),
                 );
               },

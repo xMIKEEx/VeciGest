@@ -1,17 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// Importa las páginas placeholder (ajusta los imports según tu estructura real)
-import 'package:vecigest/presentation/chat/thread_list_page.dart'; // Changed import
-import 'package:vecigest/presentation/incidents/incident_list_page.dart'; // Corrected path
-import 'package:vecigest/presentation/documents/doc_list_page.dart'; // Corrected path
-import 'package:vecigest/presentation/polls/poll_list_page.dart'; // Corrected path
-import 'package:vecigest/presentation/reservations/reservation_list_page.dart'; // Nueva importación
-import 'package:vecigest/presentation/properties/property_list_page.dart'; // Importación para propiedades
+import 'package:vecigest/presentation/chat/thread_list_page.dart';
+import 'package:vecigest/presentation/incidents/incident_list_page.dart';
+import 'package:vecigest/presentation/polls/poll_list_page.dart';
+import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
+import 'package:vecigest/presentation/events/new_event_page.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
-import 'package:vecigest/presentation/home/user_dashboard_page.dart';
-import 'package:vecigest/presentation/auth/edit_community_page.dart';
-import '../../main.dart';
+import 'package:vecigest/data/services/incident_service.dart';
+import 'package:vecigest/data/services/chat_service.dart';
+
+// Import new modular components
+import 'widgets/card_wrapper.dart';
+import 'widgets/context_info_card.dart';
+import 'widgets/upcoming_events_card.dart';
+import 'widgets/notifications_card.dart';
+import 'widgets/settings_bottom_sheet.dart';
+import 'widgets/navigation_badge.dart';
+import 'managers/navigation_manager.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,361 +25,254 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _currentIndex = -1;
-  final List<Widget> _pages = const [
-    ThreadListPage(),
-    IncidentListPage(),
-    DocListPage(),
-    PollListPage(),
-    ReservationListPage(),
-    PropertyListPage(),
-  ];
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  int _currentIndex = 2;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
-  void _openSettings() async {
+  // Services
+  final _userRoleService = UserRoleService();
+  final _incidentService = IncidentService();
+  final _chatService = ChatService();
+
+  // Navigation manager
+  final _navigationManager = NavigationManager();
+
+  // User data
+  Map<String, dynamic>? _userRole;
+  bool _isAdmin = false;
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _loadUserData();
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final role = await _userRoleService.getUserRoleAndCommunity(user.uid);
+      if (mounted) {
+        setState(() {
+          _userRole = role;
+          _isAdmin = role?['role'] == 'admin';
+        });
+      }
+    }
+  }
+
+  Widget _buildHomePage() {
+    return RefreshIndicator(
+      onRefresh: _loadUserData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Context Information Section
+            CardWrapper(
+              child: ContextInfoCard(userRole: _userRole, isAdmin: _isAdmin),
+            ),
+
+            // Upcoming Events Section (Only for Admins)
+            if (_isAdmin)
+              CardWrapper(
+                child: UpcomingEventsCard(
+                  isAdmin: _isAdmin,
+                  onAddEvent:
+                      () => _pushToCurrentTab(
+                        NewEventPage(onClose: _popFromCurrentTab),
+                      ),
+                ),
+              ),
+
+            // Notifications Section
+            CardWrapper(
+              child: NotificationsCard(
+                onNavigateToTab:
+                    (index) => setState(() => _currentIndex = index),
+                onOpenSettings: _openSettings,
+              ),
+            ),
+
+            const SizedBox(height: 80), // Bottom padding for FAB
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSettings() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) {
-        final user = FirebaseAuth.instance.currentUser;
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.person,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                title: Text(
-                  user?.email ?? 'Ver perfil',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                subtitle:
-                    user != null
-                        ? Text(
-                          'ID: ${user.uid}',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                        )
-                        : null,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const UserDashboardPage(),
-                    ),
-                  );
-                },
-              ),
-              SwitchListTile(
-                secondary: Icon(
-                  Icons.dark_mode,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                title: Text(
-                  'Modo oscuro',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                value:
-                    Provider.of<ThemeProvider>(context).themeMode ==
-                    ThemeMode.dark,
-                onChanged: (val) {
-                  Provider.of<ThemeProvider>(
-                    context,
-                    listen: false,
-                  ).setTheme(val ? ThemeMode.dark : ThemeMode.light);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.logout,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                title: Text(
-                  'Cerrar sesión',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  }
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.info_outline,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                title: Text(
-                  'Acerca de',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                onTap: () {
-                  showAboutDialog(
-                    context: context,
-                    applicationName: 'VeciGest',
-                    applicationVersion: '1.0.0',
-                    applicationLegalese: '© 2025 VeciGest',
-                  );
-                },
-              ),
-              // Opción para editar comunidad (solo visible para admins)
-              if (user != null)
-                FutureBuilder<Map<String, dynamic>?>(
-                  future: UserRoleService().getUserRoleAndCommunity(user.uid),
-                  builder: (context, snapshot) {
-                    final userRole = snapshot.data;
-                    if (userRole != null && userRole['role'] == 'admin') {
-                      return ListTile(
-                        leading: Icon(
-                          Icons.apartment,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        title: const Text('Editar comunidad'),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => EditCommunityPage(
-                                    communityId: userRole['communityId'],
-                                  ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                    return Container();
-                  },
-                ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => SettingsBottomSheet(isAdmin: _isAdmin),
     );
+  }
+
+  Widget _buildBody() {
+    // Check if there are sub-pages in the current tab's navigation stack
+    final currentStack = _navigationManager.getStackForTab(_currentIndex);
+
+    if (currentStack.isNotEmpty) {
+      return currentStack.last;
+    }
+
+    // Default tab content
+    switch (_currentIndex) {
+      case 0:
+        return IncidentListPage(onNavigate: _pushToCurrentTab);
+      case 1:
+        return ReservationListPage(
+          onNavigate: _pushToCurrentTab,
+          onPop: _popFromCurrentTab,
+        );
+      case 2:
+        return _buildHomePage();
+      case 3:
+        return ThreadListPage(onNavigate: _pushToCurrentTab);
+      case 4:
+        return PollListPage(onNavigate: _pushToCurrentTab);
+      default:
+        return _buildHomePage();
+    }
+  }
+
+  // Navigation methods using NavigationManager
+  void _pushToCurrentTab(Widget page) {
+    setState(() {
+      _navigationManager.pushToTab(_currentIndex, page);
+    });
+  }
+
+  bool _popFromCurrentTab() {
+    final popped = _navigationManager.popFromTab(_currentIndex);
+    if (popped) {
+      setState(() {});
+      return true;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = FirebaseAuth.instance.currentUser;
-    // Obtener el rol del usuario para ocultar viviendas si es residente
-    return FutureBuilder<Map<String, dynamic>?>(
-      future:
-          user != null
-              ? UserRoleService().getUserRoleAndCommunity(user.uid)
-              : Future.value(null),
-      builder: (context, snapshot) {
-        final userRole = snapshot.data;
-        // Opciones base
-        final options = [
-          {
-            'label': 'Chat',
-            'icon': Icons.chat,
-            'color': Colors.blue,
-            'route': 0,
-          },
-          {
-            'label': 'Incidencias',
-            'icon': Icons.report_problem,
-            'color': Colors.orange,
-            'route': 1,
-          },
-          {
-            'label': 'Documentos',
-            'icon': Icons.description,
-            'color': Colors.green,
-            'route': 2,
-          },
-          {
-            'label': 'Encuestas',
-            'icon': Icons.poll,
-            'color': Colors.purple,
-            'route': 3,
-          },
-          {
-            'label': 'Reservas',
-            'icon': Icons.event_available,
-            'color': Colors.teal,
-            'route': 4,
-          },
-        ];
-        // Solo admins ven el cuadrado de viviendas
-        if (userRole != null && userRole['role'] != 'resident') {
-          options.add({
-            'label': 'Viviendas',
-            'icon': Icons.apartment,
-            'color': Colors.amber,
-            'route': 5,
-          });
-        }
-        if (_currentIndex < 0 || _currentIndex >= _pages.length) {
-          // Dashboard
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('VeciGest'),
-              automaticallyImplyLeading: false,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: _openSettings,
-                  tooltip: 'Ajustes',
-                ),
-              ],
-            ),
-            body: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: colorScheme.primary.withOpacity(
-                            0.15,
-                          ),
-                          child:
-                              user?.email != null
-                                  ? Text(
-                                    user!.email![0].toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      color: colorScheme.primary,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                  : Icon(
-                                    Icons.person,
-                                    size: 32,
-                                    color: colorScheme.primary,
-                                  ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user?.email != null &&
-                                        user?.email!.isNotEmpty == true
-                                    ? '¡Hola, ${user?.email!.split('@')[0]}!'
-                                    : '¡Bienvenido!',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '¿Qué quieres hacer hoy?',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
-                      ),
-                      mainAxisSpacing: 24,
-                      crossAxisSpacing: 24,
-                      children:
-                          options.map((opt) {
-                            return Material(
-                              color: (opt['color'] as Color).withOpacity(0.13),
-                              borderRadius: BorderRadius.circular(24),
-                              elevation: 4,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(24),
-                                onTap: () {
-                                  setState(() {
-                                    _currentIndex = opt['route'] as int;
-                                  });
-                                },
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      opt['icon'] as IconData,
-                                      size: 54,
-                                      color: opt['color'] as Color,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      opt['label'] as String,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        } else {
-          // Página seleccionada
-          return Scaffold(
-            appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => setState(() => _currentIndex = -1),
-              ),
-              title: const Text('VeciGest'),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.settings),
-                  onPressed: _openSettings,
-                  tooltip: 'Ajustes',
-                ),
-              ],
-            ),
-            body: _pages[_currentIndex],
-          );
+    final hasSubPages = _navigationManager.hasSubPages(_currentIndex);
+
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          if (hasSubPages) {
+            _popFromCurrentTab();
+          } else {
+            if (_currentIndex != 2) {
+              setState(() {
+                _currentIndex = 2;
+              });
+            }
+          }
         }
       },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'VeciGest',
+            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter'),
+          ),
+          automaticallyImplyLeading: hasSubPages,
+          leading:
+              hasSubPages
+                  ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: _popFromCurrentTab,
+                  )
+                  : null,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: _openSettings,
+              tooltip: 'Ajustes',
+            ),
+          ],
+        ),
+        body: FadeTransition(opacity: _fadeAnimation, child: _buildBody()),
+        bottomNavigationBar: Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _animationController.reset();
+              _animationController.forward();
+            },
+            selectedItemColor: Theme.of(context).colorScheme.primary,
+            unselectedItemColor: Theme.of(
+              context,
+            ).colorScheme.onSurface.withOpacity(0.6),
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Inter',
+            ),
+            unselectedLabelStyle: const TextStyle(fontFamily: 'Inter'),
+            items: [
+              BottomNavigationBarItem(
+                icon: NavigationBadge(
+                  iconData: Icons.report_problem,
+                  stream: _incidentService.getIncidents(),
+                  countExtractor:
+                      (incidents) =>
+                          incidents.where((i) => i.status == 'open').length,
+                  badgeColor: Colors.red,
+                ),
+                label: 'Incidencias',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.event_available),
+                label: 'Reservas',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: NavigationBadge(
+                  iconData: Icons.chat_bubble,
+                  stream: _chatService.getThreads(),
+                  countExtractor: (threads) => threads.length,
+                  badgeColor: Colors.blue,
+                ),
+                label: 'Chat',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.poll),
+                label: 'Encuestas',
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

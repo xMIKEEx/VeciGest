@@ -12,6 +12,19 @@ class ReservationService {
     );
   }
 
+  // Get only user reservations (excluding admin events)
+  Stream<List<Reservation>> getUserReservations() {
+    return reservations
+        .where('userId', isNotEqualTo: 'admin')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => Reservation.fromFirestore(doc))
+                  .toList(),
+        );
+  }
+
   Future<void> addReservation(Reservation reservation) async {
     await reservations.add(reservation.toMap());
   }

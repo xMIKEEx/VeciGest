@@ -171,12 +171,7 @@ class AppRoutes {
   }
 
   static Route<dynamic> _errorRoute(String? name, [String message = ""]) {
-    return MaterialPageRoute(
-      builder:
-          (_) => Scaffold(
-            appBar: AppBar(title: const Text("Error")),
-            body: Center(child: Text('No route defined for $name. $message')),
-          ),
-    );
+    // En lugar de mostrar un error, redirigir al home
+    return MaterialPageRoute(builder: (_) => const HomePage());
   }
 }

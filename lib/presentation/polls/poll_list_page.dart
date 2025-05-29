@@ -3,9 +3,12 @@ import 'package:shimmer/shimmer.dart';
 import 'package:vecigest/data/services/poll_service.dart';
 import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/utils/routes.dart';
+import 'package:vecigest/presentation/polls/poll_detail_page.dart';
 
 class PollListPage extends StatefulWidget {
-  const PollListPage({super.key});
+  final Function(Widget)? onNavigate;
+
+  const PollListPage({super.key, this.onNavigate});
 
   @override
   State<PollListPage> createState() => _PollListPageState();
@@ -101,12 +104,17 @@ class _PollListPageState extends State<PollListPage> {
                     ),
                   ),
                   trailing: const Icon(Icons.chevron_right, size: 28),
-                  onTap:
-                      () => Navigator.pushNamed(
+                  onTap: () {
+                    if (widget.onNavigate != null) {
+                      widget.onNavigate!(PollDetailPage(poll: poll));
+                    } else {
+                      Navigator.pushNamed(
                         ctx,
                         AppRoutes.pollDetail,
                         arguments: poll,
-                      ),
+                      );
+                    }
+                  },
                 ),
               );
             },

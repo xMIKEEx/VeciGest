@@ -3,10 +3,14 @@ import 'package:shimmer/shimmer.dart';
 import 'package:vecigest/data/services/chat_service.dart';
 import 'package:vecigest/domain/models/thread_model.dart';
 import 'package:vecigest/utils/routes.dart';
+import 'package:vecigest/presentation/chat/chat_page.dart';
+import 'package:vecigest/presentation/chat/new_thread_page.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ThreadListPage extends StatefulWidget {
-  const ThreadListPage({super.key});
+  final Function(Widget)? onNavigate;
+
+  const ThreadListPage({super.key, this.onNavigate});
 
   @override
   State<ThreadListPage> createState() => _ThreadListPageState();
@@ -117,11 +121,15 @@ class _ThreadListPageState extends State<ThreadListPage> {
                     ),
                     trailing: const Icon(Icons.chevron_right, size: 28),
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.chatMessages,
-                        arguments: thread,
-                      );
+                      if (widget.onNavigate != null) {
+                        widget.onNavigate!(ChatPage(thread: thread));
+                      } else {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.chatMessages,
+                          arguments: thread,
+                        );
+                      }
                     },
                   ),
                 );
@@ -132,7 +140,13 @@ class _ThreadListPageState extends State<ThreadListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_thread_list',
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.newThread),
+        onPressed: () {
+          if (widget.onNavigate != null) {
+            widget.onNavigate!(const NewThreadPage());
+          } else {
+            Navigator.pushNamed(context, AppRoutes.newThread);
+          }
+        },
         tooltip: 'Añadir hilo',
         child: const Icon(Icons.add),
       ),

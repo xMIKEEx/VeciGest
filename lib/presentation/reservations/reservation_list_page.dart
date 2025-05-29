@@ -3,7 +3,10 @@ import 'package:vecigest/data/services/reservation_service.dart';
 import 'package:vecigest/domain/models/reservation_model.dart';
 
 class ReservationListPage extends StatelessWidget {
-  const ReservationListPage({super.key});
+  final Function(Widget)? onNavigate;
+  final VoidCallback? onPop;
+
+  const ReservationListPage({super.key, this.onNavigate, this.onPop});
 
   Color _getCardColor(DateTime start, DateTime end) {
     final now = DateTime.now();
@@ -16,12 +19,10 @@ class ReservationListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = ReservationService();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reservas'),
-        automaticallyImplyLeading: false,
-      ),
       body: StreamBuilder<List<Reservation>>(
-        stream: service.getReservations(),
+        stream:
+            service
+                .getUserReservations(), // Use getUserReservations to exclude admin events
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -93,11 +94,25 @@ class ReservationListPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed:
-            () => Navigator.push(
+        onPressed: () {
+          if (onNavigate != null) {
+            onNavigate!(
+              NewReservationPage(
+                onClose: () {
+                  // This callback will be executed to close the reservation form
+                  if (onPop != null) {
+                    onPop!();
+                  }
+                },
+              ),
+            );
+          } else {
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NewReservationPage()),
-            ),
+            );
+          }
+        },
         icon: const Icon(Icons.add),
         label: const Text('Nueva reserva'),
         backgroundColor: Colors.teal,
@@ -107,7 +122,9 @@ class ReservationListPage extends StatelessWidget {
 }
 
 class NewReservationPage extends StatefulWidget {
-  const NewReservationPage({super.key});
+  final VoidCallback? onClose;
+
+  const NewReservationPage({super.key, this.onClose});
 
   @override
   State<NewReservationPage> createState() => _NewReservationPageState();
@@ -176,7 +193,13 @@ class _NewReservationPageState extends State<NewReservationPage> {
         title: const Text('Nueva Reserva'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (widget.onClose != null) {
+              widget.onClose!();
+            } else {
+              Navigator.pop(context);
+            }
+          },
         ),
       ),
       body: Padding(
@@ -268,7 +291,13 @@ class _NewReservationPageState extends State<NewReservationPage> {
                       endTime: _endDateTime!,
                     );
                     await ReservationService().addReservation(reserva);
-                    if (mounted) Navigator.pop(context);
+                    if (mounted) {
+                      if (widget.onClose != null) {
+                        widget.onClose!();
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    }
                   }
                 },
                 label: const Text('Guardar'),

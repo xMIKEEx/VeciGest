@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:vecigest/utils/routes.dart';
 import 'package:vecigest/utils/theme.dart';
+import 'package:vecigest/presentation/home/home_page.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -45,6 +46,10 @@ class MyApp extends StatelessWidget {
       initialRoute:
           AppRoutes.splash, // Cambiado para que inicie en splash/login
       onGenerateRoute: AppRoutes.onGenerateRoute,
+      onUnknownRoute: (settings) {
+        // Si la ruta no es conocida, redirigir al home
+        return MaterialPageRoute(builder: (_) => const HomePage());
+      },
     );
   }
 }

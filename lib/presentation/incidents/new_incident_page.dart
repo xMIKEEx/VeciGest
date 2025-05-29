@@ -130,6 +130,11 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.incident != null;
+    final user = FirebaseAuth.instance.currentUser;
+    final isOwner = isEdit && user?.uid == widget.incident?.createdBy;
+    final isAdmin = false; // Puedes cargar el rol real si lo necesitas
+
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva incidencia')),
       body:
@@ -141,68 +146,110 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      TextFormField(
-                        controller: _titleCtrl,
-                        decoration: const InputDecoration(labelText: 'Título'),
-                        validator:
-                            (v) =>
-                                (v == null || v.trim().isEmpty)
-                                    ? 'Introduce un título'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Descripción',
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        maxLines: 4,
-                        validator:
-                            (v) =>
-                                (v == null || v.trim().isEmpty)
-                                    ? 'Introduce una descripción'
-                                    : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _pickImages,
-                            icon: const Icon(Icons.photo_library),
-                            label: const Text('Añadir fotos'),
-                          ),
-                          const SizedBox(width: 12),
-                          if (_pickedImages.isNotEmpty)
-                            Expanded(
-                              child: SizedBox(
-                                height: 60,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _pickedImages.length,
-                                  separatorBuilder:
-                                      (_, __) => const SizedBox(width: 8),
-                                  itemBuilder:
-                                      (_, i) => ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.file(
-                                          File(_pickedImages[i].path),
-                                          width: 60,
-                                          height: 60,
-                                          fit: BoxFit.cover,
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _titleCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Título',
+                                ),
+                                validator:
+                                    (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                            ? 'Introduce un título'
+                                            : null,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _descCtrl,
+                                decoration: const InputDecoration(
+                                  labelText: 'Descripción',
+                                ),
+                                maxLines: 4,
+                                validator:
+                                    (v) =>
+                                        (v == null || v.trim().isEmpty)
+                                            ? 'Introduce una descripción'
+                                            : null,
+                              ),
+                              const SizedBox(height: 16),
+                              if (isEdit && (isOwner || isAdmin)) ...[
+                                DropdownButtonFormField<String>(
+                                  value: widget.incident!.status,
+                                  items:
+                                      ['open', 'in_progress', 'closed']
+                                          .map(
+                                            (s) => DropdownMenuItem(
+                                              value: s,
+                                              child: Text(s),
+                                            ),
+                                          )
+                                          .toList(),
+                                  onChanged: (val) {
+                                    // Aquí deberías guardar el nuevo estado para enviarlo en el submit
+                                  },
+                                  decoration: const InputDecoration(
+                                    labelText: 'Estado',
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: _pickImages,
+                                    icon: const Icon(Icons.photo_library),
+                                    label: const Text('Añadir fotos'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  if (_pickedImages.isNotEmpty)
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 60,
+                                        child: ListView.separated(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: _pickedImages.length,
+                                          separatorBuilder:
+                                              (_, __) =>
+                                                  const SizedBox(width: 8),
+                                          itemBuilder:
+                                              (_, i) => ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: Image.file(
+                                                  File(_pickedImages[i].path),
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
                                         ),
                                       ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              ElevatedButton(
+                                onPressed: _submit,
+                                child: Text(
+                                  isEdit
+                                      ? 'Guardar cambios'
+                                      : 'Crear incidencia',
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: _submit,
-                        child: Text(
-                          widget.incident == null
-                              ? 'Crear incidencia'
-                              : 'Guardar cambios',
+                            ],
+                          ),
                         ),
                       ),
                     ],

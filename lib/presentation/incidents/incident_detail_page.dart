@@ -43,6 +43,8 @@ class _IncidentDetailPageState extends State<IncidentDetailPage> {
   @override
   Widget build(BuildContext context) {
     final incident = widget.incident;
+    final isOwner =
+        FirebaseAuth.instance.currentUser?.uid == incident.createdBy;
     return Scaffold(
       appBar: AppBar(title: Text(incident.title)),
       body: SingleChildScrollView(
@@ -77,37 +79,69 @@ class _IncidentDetailPageState extends State<IncidentDetailPage> {
                           .toList(),
                 ),
               ),
-            if (incident.status != 'closed') ...[
-              DropdownButtonFormField<String>(
-                value: _selectedStatus,
-                items:
-                    ['open', 'in_progress', 'closed']
-                        .map(
-                          (s) => DropdownMenuItem(
-                            value: s,
-                            child: Text(s.capitalize()),
+            if (_isAdmin || isOwner) ...[
+              const SizedBox(height: 16),
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Editar estado',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: _selectedStatus,
+                        items:
+                            ['open', 'in_progress', 'closed']
+                                .map(
+                                  (s) => DropdownMenuItem(
+                                    value: s,
+                                    child: Text(s.capitalize()),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedStatus = val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _loading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ElevatedButton.icon(
+                            icon: const Icon(Icons.save),
+                            label: const Text('Actualizar estado'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () async {
+                              setState(() => _loading = true);
+                              await IncidentService().updateIncidentStatus(
+                                incident.id,
+                                _selectedStatus,
+                              );
+                              setState(() => _loading = false);
+                              Navigator.pop(context, true);
+                            },
                           ),
-                        )
-                        .toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedStatus = val);
-                },
-              ),
-              const SizedBox(height: 12),
-              _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                    child: const Text('Actualizar estado'),
-                    onPressed: () async {
-                      setState(() => _loading = true);
-                      await IncidentService().updateIncidentStatus(
-                        incident.id,
-                        _selectedStatus,
-                      );
-                      setState(() => _loading = false);
-                      Navigator.pop(context, true);
-                    },
+                    ],
                   ),
+                ),
+              ),
             ],
             if (_isAdmin) ...[
               Row(
