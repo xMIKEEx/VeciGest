@@ -7,7 +7,7 @@ import 'package:vecigest/presentation/home/home_page.dart';
 import 'package:vecigest/presentation/chat/chat_page.dart'; // For individual chat messages
 import 'package:vecigest/presentation/incidents/incident_list_page.dart';
 import 'package:vecigest/presentation/documents/doc_list_page.dart';
-import 'package:vecigest/presentation/polls/poll_list_page.dart';
+import 'package:vecigest/presentation/polls/modern_poll_page.dart';
 import 'package:vecigest/presentation/auth/create_community_page.dart';
 import 'package:vecigest/presentation/auth/invite_register_page.dart';
 import 'package:vecigest/presentation/auth/admin_no_community_page.dart';
@@ -15,7 +15,6 @@ import 'package:vecigest/presentation/auth/admin_no_community_page.dart';
 // Added imports for new pages (assuming these files and classes exist)
 import 'package:vecigest/presentation/polls/poll_detail_page.dart';
 import 'package:vecigest/presentation/polls/new_poll_page.dart'; // Assumed
-import 'package:vecigest/presentation/polls/poll_results_page.dart'; // Assumed
 import 'package:vecigest/presentation/incidents/new_incident_page.dart';
 import 'package:vecigest/presentation/incidents/incident_detail_page.dart'; // Assumed
 import 'package:vecigest/presentation/documents/upload_doc_page.dart';
@@ -53,11 +52,9 @@ class AppRoutes {
   static const String createCommunity = '/create-community';
   static const String inviteRegister = '/invite-register';
   static const String adminNoCommunity = '/admin-no-community';
-
   // Added route constants
   static const String pollDetail = '/poll-detail';
   static const String newPoll = '/new-poll';
-  static const String pollResults = '/poll-results';
   static const String incidentDetail = '/incident-detail';
   static const String newIncident = '/new-incident';
   static const String uploadDocument = '/upload-document';
@@ -98,7 +95,7 @@ class AppRoutes {
       case documents:
         return MaterialPageRoute(builder: (_) => const DocListPage());
       case polls:
-        return MaterialPageRoute(builder: (_) => const PollListPage());
+        return MaterialPageRoute(builder: (_) => const ModernPollPage());
       case reservations:
         return MaterialPageRoute(builder: (_) => const ReservationListPage());
       case createCommunity:
@@ -125,14 +122,6 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => const NewPollPage(),
         ); // Assumed NewPollPage
-      case pollResults:
-        final args = settings.arguments;
-        if (args is PollModel) {
-          return MaterialPageRoute(
-            builder: (_) => PollResultsPage(poll: args),
-          ); // Assumed PollResultsPage
-        }
-        return _errorRoute(settings.name, "Expected PollModel argument");
       case incidentDetail:
         final args = settings.arguments;
         if (args is IncidentModel) {

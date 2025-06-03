@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:vecigest/domain/models/incident_notification_model.dart';
+import 'package:vecigest/domain/models/poll_model.dart';
 
-class NotificationHeader extends StatelessWidget {
-  final List<IncidentNotification> notifications;
+class PollNotificationHeader extends StatelessWidget {
+  final List<PollModel> unvotedPolls;
   final bool isExpanded;
   final VoidCallback? onTap;
-  final VoidCallback? onDeleteAll;
 
-  const NotificationHeader({
+  const PollNotificationHeader({
     super.key,
-    required this.notifications,
+    required this.unvotedPolls,
     required this.isExpanded,
     this.onTap,
-    this.onDeleteAll,
   });
 
   @override
   Widget build(BuildContext context) {
     final recentCount =
-        notifications
-            .where((n) => DateTime.now().difference(n.timestamp).inHours < 24)
+        unvotedPolls
+            .where(
+              (poll) => DateTime.now().difference(poll.createdAt).inHours < 24,
+            )
             .length;
-    final headerColor = _getHeaderColor(notifications);
+    final headerColor = _getHeaderColor(unvotedPolls);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: notifications.isNotEmpty ? onTap : null,
+        onTap: unvotedPolls.isNotEmpty ? onTap : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -52,7 +52,7 @@ class NotificationHeader extends StatelessWidget {
                   color: headerColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.history, color: headerColor, size: 20),
+                child: Icon(Icons.poll, color: headerColor, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -63,40 +63,14 @@ class NotificationHeader extends StatelessWidget {
                       children: [
                         const Expanded(
                           child: Text(
-                            'Incidencias',
+                            'Encuestas',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontFamily: 'Inter',
                             ),
                           ),
                         ),
-                        if (notifications.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            width: isExpanded ? 32 : 0,
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 300),
-                              opacity: isExpanded ? 1.0 : 0.0,
-                              child: Material(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(20),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(20),
-                                  onTap: onDeleteAll,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    child: Icon(
-                                      Icons.delete_sweep,
-                                      size: 16,
-                                      color: Colors.red[600],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                        if (unvotedPolls.isNotEmpty) ...[
                           AnimatedRotation(
                             duration: const Duration(milliseconds: 300),
                             turns: isExpanded ? 0.5 : 0.0,
@@ -112,8 +86,8 @@ class NotificationHeader extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       recentCount > 0
-                          ? '$recentCount cambios recientes'
-                          : '${notifications.length} actividades registradas',
+                          ? '$recentCount encuestas nuevas'
+                          : '${unvotedPolls.length} encuestas sin votar',
                       style: TextStyle(
                         color: Theme.of(
                           context,
@@ -132,22 +106,22 @@ class NotificationHeader extends StatelessWidget {
     );
   }
 
-  Color _getHeaderColor(List<IncidentNotification> notifications) {
-    if (notifications.isEmpty) return Colors.grey;
+  Color _getHeaderColor(List<PollModel> polls) {
+    if (polls.isEmpty) return Colors.grey;
 
     final now = DateTime.now();
-    final hasRecent = notifications.any(
-      (n) => now.difference(n.timestamp).inHours < 1,
+    final hasRecent = polls.any(
+      (poll) => now.difference(poll.createdAt).inHours < 1,
     );
 
-    if (hasRecent) return Colors.orange;
+    if (hasRecent) return Colors.purple;
 
-    final hasToday = notifications.any(
-      (n) => now.difference(n.timestamp).inDays < 1,
+    final hasToday = polls.any(
+      (poll) => now.difference(poll.createdAt).inDays < 1,
     );
 
-    if (hasToday) return Colors.blue;
+    if (hasToday) return Colors.deepPurple;
 
-    return Colors.green;
+    return Colors.indigo;
   }
 }

@@ -27,7 +27,6 @@ class _IncidentNotificationsWidgetState
   final UserRoleService _userRoleService = UserRoleService();
   late final NotificationManager _notificationManager;
   String? _userCommunityId;
-  bool _isExpanded = false;
 
   late AnimationController _animationController;
   late Animation<double> _expandAnimation;
@@ -38,12 +37,12 @@ class _IncidentNotificationsWidgetState
     _notificationManager = NotificationManager(_notificationService);
     _loadUserCommunityId();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
     _expandAnimation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeInOutCubic,
+      curve: Curves.easeInOut,
     );
   }
 
@@ -65,25 +64,24 @@ class _IncidentNotificationsWidgetState
 
   @override
   Widget build(BuildContext context) {
-    if (_userCommunityId == null) {
-      return NotificationStates.buildLoadingState(context);
-    }
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return NotificationStates.buildErrorState(context);
     }
 
+    // Use a default community ID if not loaded yet
+    final communityId = _userCommunityId ?? '';
+    if (communityId.isEmpty) {
+      return NotificationStates.buildLoadingState(context);
+    }
+
     return StreamBuilder<List<IncidentNotification>>(
       stream: _notificationService.getVisibleNotificationsForUser(
         user.uid,
-        _userCommunityId!,
+        communityId,
         limit: 20,
       ),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return NotificationStates.buildLoadingState(context);
-        }
         if (snapshot.hasError) {
           return NotificationStates.buildErrorState(context);
         }
@@ -100,11 +98,16 @@ class _IncidentNotificationsWidgetState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        NotificationHeader(
-          notifications: notifications,
-          isExpanded: _isExpanded,
-          onTap: _toggleExpansion,
-          onDeleteAll: () => _showDeleteAllDialog(notifications),
+        AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return NotificationHeader(
+              notifications: notifications,
+              isExpanded: _animationController.value > 0.5,
+              onTap: _toggleExpansion,
+              onDeleteAll: () => _showDeleteAllDialog(notifications),
+            );
+          },
         ),
         AnimatedBuilder(
           animation: _expandAnimation,
@@ -117,18 +120,23 @@ class _IncidentNotificationsWidgetState
               ),
             );
           },
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-              ...notifications.asMap().entries.map(
-                (entry) => NotificationItem(
-                  notification: entry.value,
-                  index: entry.key,
-                  isExpanded: _isExpanded,
-                  onTap: () => _showNotificationDetails(entry.value),
-                ),
-              ),
-            ],
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return Column(
+                children: [
+                  const SizedBox(height: 8),
+                  ...notifications.asMap().entries.map(
+                    (entry) => NotificationItem(
+                      notification: entry.value,
+                      index: entry.key,
+                      isExpanded: _animationController.value > 0.5,
+                      onTap: () => _showNotificationDetails(entry.value),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -136,10 +144,7 @@ class _IncidentNotificationsWidgetState
   }
 
   void _toggleExpansion() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-    });
-    if (_isExpanded) {
+    if (_animationController.value == 0.0) {
       _animationController.forward();
     } else {
       _animationController.reverse();

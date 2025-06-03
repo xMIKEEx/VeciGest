@@ -96,7 +96,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
             if (incidents.isEmpty) {
               return Center(
                 child: Text(
-                  'No hay incidencias registradas',
+                  'No hay incidencias disponibles',
                   style: TextStyle(
                     color: colorScheme.onSurface.withOpacity(0.6),
                   ),

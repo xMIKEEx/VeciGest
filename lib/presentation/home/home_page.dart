@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:vecigest/presentation/chat/thread_list_page.dart';
 import 'package:vecigest/presentation/incidents/incident_list_page.dart';
-import 'package:vecigest/presentation/polls/poll_list_page.dart';
+import 'package:vecigest/presentation/polls/modern_poll_page.dart';
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
 import 'package:vecigest/presentation/events/new_event_page.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       case 3:
         return ThreadListPage(onNavigate: _pushToCurrentTab);
       case 4:
-        return PollListPage(onNavigate: _pushToCurrentTab);
+        return const ModernPollPage();
       default:
         return _buildHomePage();
     }

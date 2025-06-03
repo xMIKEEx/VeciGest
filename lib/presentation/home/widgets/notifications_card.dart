@@ -1,10 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:vecigest/data/services/chat_service.dart';
-import 'package:vecigest/data/services/poll_service.dart';
 import 'package:vecigest/domain/models/thread_model.dart';
-import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/presentation/incidents/incident_notifications_widget.dart';
+import 'package:vecigest/presentation/polls/poll_notifications_widget.dart';
 import 'notification_tile.dart';
 
 class NotificationsCard extends StatelessWidget {
@@ -41,26 +39,14 @@ class NotificationsCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Incident notifications
+        // 1. Incidencias (Incident notifications)
         const IncidentNotificationsWidget(),
+        const SizedBox(height: 8), // 2. Encuestas (Poll notifications)
+        const PollNotificationsWidget(),
         const SizedBox(height: 8),
 
-        // Chat notifications
+        // 3. Chats (Chat notifications)
         _buildChatNotifications(),
-        const SizedBox(height: 8),
-
-        // Poll notifications
-        _buildPollNotifications(),
-        const SizedBox(height: 8),
-
-        // Additional notifications
-        NotificationTile(
-          icon: Icons.description,
-          title: 'Nuevos documentos',
-          subtitle: 'Revisa los documentos recientes',
-          color: Colors.green,
-          onTap: onOpenSettings,
-        ),
       ],
     );
   }
@@ -81,59 +67,6 @@ class NotificationsCard extends StatelessWidget {
                   : 'No hay mensajes nuevos',
           color: unreadCount > 0 ? Colors.blue : Colors.grey,
           onTap: () => onNavigateToTab(3),
-        );
-      },
-    );
-  }
-
-  Widget _buildPollNotifications() {
-    final pollService = PollService();
-
-    return StreamBuilder<List<PollModel>>(
-      stream: pollService.getPolls(),
-      builder: (context, snapshot) {
-        final polls = snapshot.data ?? [];
-        final user = FirebaseAuth.instance.currentUser;
-
-        if (user == null || polls.isEmpty) {
-          return NotificationTile(
-            icon: Icons.poll,
-            title: 'Encuestas sin votar',
-            subtitle: 'No hay encuestas pendientes',
-            color: Colors.grey,
-            onTap: () => onNavigateToTab(4),
-          );
-        }
-
-        return FutureBuilder<List<bool>>(
-          future: Future.wait(
-            polls.map((poll) => pollService.hasUserVoted(poll.id, user.uid)),
-          ),
-          builder: (context, votedSnapshot) {
-            if (!votedSnapshot.hasData) {
-              return NotificationTile(
-                icon: Icons.poll,
-                title: 'Encuestas sin votar',
-                subtitle: 'Cargando...',
-                color: Colors.grey,
-                onTap: () => onNavigateToTab(4),
-              );
-            }
-
-            final votedList = votedSnapshot.data!;
-            final unvotedCount = votedList.where((voted) => !voted).length;
-
-            return NotificationTile(
-              icon: Icons.poll,
-              title: 'Encuestas sin votar',
-              subtitle:
-                  unvotedCount > 0
-                      ? '$unvotedCount encuestas disponibles'
-                      : 'No hay encuestas pendientes',
-              color: unvotedCount > 0 ? Colors.purple : Colors.grey,
-              onTap: () => onNavigateToTab(4),
-            );
-          },
         );
       },
     );
