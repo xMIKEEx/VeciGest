@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:vecigest/presentation/chat/thread_list_page.dart';
 import 'package:vecigest/presentation/incidents/incident_list_page.dart';
+import 'package:vecigest/presentation/incidents/new_incident_page.dart';
+import 'package:vecigest/presentation/incidents/incident_detail_page.dart';
 import 'package:vecigest/presentation/polls/modern_poll_page.dart';
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
 import 'package:vecigest/presentation/events/new_event_page.dart';
@@ -168,11 +170,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       return true;
     }
     return false;
+  } // Helper method to check if current page has custom header
+
+  bool _shouldHideAppBar() {
+    final hasSubPages = _navigationManager.hasSubPages(_currentIndex);
+    if (!hasSubPages) return false;
+
+    final topPage = _navigationManager.getTopPageForTab(_currentIndex);
+    if (topPage == null) return false;
+
+    // Check if the current page is one that has its own SliverAppBar
+    return topPage is NewIncidentPage || topPage is IncidentDetailPage;
   }
 
   @override
   Widget build(BuildContext context) {
     final hasSubPages = _navigationManager.hasSubPages(_currentIndex);
+    final shouldHideAppBar = _shouldHideAppBar();
 
     return PopScope(
       canPop: false,
@@ -190,27 +204,33 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'VeciGest',
-            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Inter'),
-          ),
-          automaticallyImplyLeading: hasSubPages,
-          leading:
-              hasSubPages
-                  ? IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: _popFromCurrentTab,
-                  )
-                  : null,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: _openSettings,
-              tooltip: 'Ajustes',
-            ),
-          ],
-        ),
+        appBar:
+            shouldHideAppBar
+                ? null
+                : AppBar(
+                  title: const Text(
+                    'VeciGest',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
+                  automaticallyImplyLeading: hasSubPages,
+                  leading:
+                      hasSubPages
+                          ? IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: _popFromCurrentTab,
+                          )
+                          : null,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: _openSettings,
+                      tooltip: 'Ajustes',
+                    ),
+                  ],
+                ),
         body: FadeTransition(opacity: _fadeAnimation, child: _buildBody()),
         bottomNavigationBar: Theme(
           data: Theme.of(context).copyWith(

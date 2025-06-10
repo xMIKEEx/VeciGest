@@ -147,4 +147,19 @@ class PropertyService {
                   .toList(),
         );
   }
+
+  // Obtener viviendas de un usuario específico (versión Future)
+  Future<List<PropertyModel>> getUserProperties(
+    String communityId,
+    String userId,
+  ) async {
+    final snapshot =
+        await _viviendasRef(
+          communityId,
+        ).where('userId', isEqualTo: userId).get();
+
+    return snapshot.docs
+        .map((doc) => PropertyModel.fromFirestore(doc))
+        .toList();
+  }
 }

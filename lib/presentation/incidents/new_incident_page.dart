@@ -131,38 +131,146 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.incident != null;
-    final user = FirebaseAuth.instance.currentUser;
-    final isOwner = isEdit && user?.uid == widget.incident?.createdBy;
-    final isAdmin = false; // Puedes cargar el rol real si lo necesitas
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nueva incidencia')),
-      body:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+      appBar: null, // Remove VeciGest navigation bar with settings button
+      backgroundColor: theme.colorScheme.surface,
+      body: NestedScrollView(
+        headerSliverBuilder:
+            (context, innerBoxIsScrolled) => [
+              SliverAppBar(
+                expandedHeight: 140,
+                floating: false,
+                pinned: true,
+                elevation: 0,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(
+                    isEdit ? 'Editar Incidencia' : 'Nueva Incidencia',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withOpacity(0.8),
+                        ],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 40,
+                          right: -20,
+                          child: Icon(
+                            Icons.report_problem_outlined,
+                            size: 100,
+                            color: Colors.white.withOpacity(0.1),
+                          ),
                         ),
-                        color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
+                        Positioned(
+                          bottom: 50,
+                          left: 56,
+                          child: Text(
+                            isEdit
+                                ? 'Edita la incidencia'
+                                : 'Crea una nueva incidencia',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+        body:
+            _loading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        // Tarjeta de información básica
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.purple.withOpacity(0.1),
+                                Colors.purple.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.purple.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.report_problem,
+                                      color: Colors.purple[600],
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    'Información de la Incidencia',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
                               TextFormField(
                                 controller: _titleCtrl,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Título',
+                                  hintText:
+                                      'Describe el problema brevemente...',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.all(16),
                                 ),
                                 validator:
                                     (v) =>
@@ -173,8 +281,17 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
                               const SizedBox(height: 16),
                               TextFormField(
                                 controller: _descCtrl,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Descripción',
+                                  hintText:
+                                      'Explica detalladamente el problema...',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.all(16),
                                 ),
                                 maxLines: 4,
                                 validator:
@@ -183,79 +300,163 @@ class _NewIncidentPageState extends State<NewIncidentPage> {
                                             ? 'Introduce una descripción'
                                             : null,
                               ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Tarjeta de fotos
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.blue.withOpacity(0.1),
+                                Colors.blue.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.photo_library,
+                                      color: Colors.blue[600],
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    'Fotografías',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
                               const SizedBox(height: 16),
-                              if (isEdit && (isOwner || isAdmin)) ...[
-                                DropdownButtonFormField<String>(
-                                  value: widget.incident!.status,
-                                  items:
-                                      ['open', 'in_progress', 'closed']
-                                          .map(
-                                            (s) => DropdownMenuItem(
-                                              value: s,
-                                              child: Text(s),
+                              if (_pickedImages.isNotEmpty) ...[
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _pickedImages.length,
+                                    separatorBuilder:
+                                        (_, __) => const SizedBox(width: 12),
+                                    itemBuilder:
+                                        (_, i) => ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Container(
+                                            width: 100,
+                                            height: 100,
+                                            decoration: BoxDecoration(
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.1),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
                                             ),
-                                          )
-                                          .toList(),
-                                  onChanged: (val) {
-                                    // Aquí deberías guardar el nuevo estado para enviarlo en el submit
-                                  },
-                                  decoration: const InputDecoration(
-                                    labelText: 'Estado',
+                                            child: Image.file(
+                                              File(_pickedImages[i].path),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                               ],
-                              Row(
-                                children: [
-                                  ElevatedButton.icon(
-                                    onPressed: _pickImages,
-                                    icon: const Icon(Icons.photo_library),
-                                    label: const Text('Añadir fotos'),
+                              ElevatedButton.icon(
+                                onPressed: _pickImages,
+                                icon: const Icon(Icons.add_photo_alternate),
+                                label: Text(
+                                  _pickedImages.isEmpty
+                                      ? 'Añadir fotos'
+                                      : 'Cambiar fotos',
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[600],
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
                                   ),
-                                  const SizedBox(width: 12),
-                                  if (_pickedImages.isNotEmpty)
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: 60,
-                                        child: ListView.separated(
-                                          scrollDirection: Axis.horizontal,
-                                          itemCount: _pickedImages.length,
-                                          separatorBuilder:
-                                              (_, __) =>
-                                                  const SizedBox(width: 8),
-                                          itemBuilder:
-                                              (_, i) => ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Image.file(
-                                                  File(_pickedImages[i].path),
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 32),
-                              ElevatedButton(
-                                onPressed: _submit,
-                                child: Text(
-                                  isEdit
-                                      ? 'Guardar cambios'
-                                      : 'Crear incidencia',
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 32),
+
+                        // Botón principal
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 4,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  isEdit ? Icons.save : Icons.send,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  isEdit
+                                      ? 'Guardar Cambios'
+                                      : 'Crear Incidencia',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+      ),
     );
   }
 }
