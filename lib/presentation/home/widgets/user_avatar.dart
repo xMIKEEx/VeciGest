@@ -12,21 +12,36 @@ class UserAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-      child:
-          user?.email != null
+      backgroundImage:
+          user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+      child: user?.photoURL == null
+          ? (user != null
               ? Text(
-                user!.email![0].toUpperCase(),
-                style: TextStyle(
-                  fontSize: radius * 0.8,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              )
+                  _initialFromUser(user!),
+                  style: TextStyle(
+                    fontSize: radius * 0.8,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                )
               : Icon(
-                Icons.person,
-                size: radius,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+                  Icons.person,
+                  size: radius,
+                  color: Theme.of(context).colorScheme.primary,
+                ))
+          : null,
     );
   }
+}
+
+String _initialFromUser(User user) {
+  final name = user.displayName;
+  if (name != null && name.isNotEmpty) {
+    return name[0].toUpperCase();
+  }
+  final email = user.email;
+  if (email != null && email.isNotEmpty) {
+    return email[0].toUpperCase();
+  }
+  return '?';
 }
