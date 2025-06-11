@@ -27,6 +27,7 @@ import 'package:vecigest/presentation/properties/invitations_list_page.dart';
 import 'package:vecigest/domain/models/incident_model.dart';
 import 'package:vecigest/domain/models/document_model.dart';
 import 'package:vecigest/domain/models/thread_model.dart';
+import 'package:vecigest/domain/models/property_model.dart';
 
 class AppRoutes {
   static const String splash = splashRoute;
@@ -100,12 +101,18 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const NewPollPage());
       case incidentDetail:
         final args = settings.arguments;
+        // Debug: incidentDetail route called with args: $args (type: ${args.runtimeType})
         if (args is IncidentModel) {
+          // Debug: Creating IncidentDetailPage with incident: ${args.title}
           return MaterialPageRoute(
             builder: (_) => IncidentDetailPage(incident: args),
           );
         }
-        return _errorRoute(settings.name, "Expected IncidentModel argument");
+        // Debug: ERROR - Expected IncidentModel but got ${args.runtimeType}
+        return _errorRoute(
+          settings.name,
+          "Expected IncidentModel argument, got ${args.runtimeType}",
+        );
       case newIncident:
         return MaterialPageRoute(builder: (_) => const NewIncidentPage());
       case uploadDocument:
@@ -124,9 +131,18 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const PropertyListPage());
       case propertyDetail:
         final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => const PropertyDetailPage(),
-          settings: RouteSettings(arguments: args),
+        if (args != null && args['communityId'] != null) {
+          return MaterialPageRoute(
+            builder:
+                (_) => PropertyDetailPage(
+                  communityId: args['communityId'] as String,
+                  property: args['property'],
+                ),
+          );
+        }
+        return _errorRoute(
+          settings.name,
+          "Missing required communityId argument",
         );
       case invitations:
         return MaterialPageRoute(builder: (_) => const InvitationsListPage());
@@ -138,7 +154,59 @@ class AppRoutes {
   }
 
   static Route<dynamic> _errorRoute(String? name, [String message = ""]) {
-    // En lugar de mostrar un error, redirigir al home
-    return MaterialPageRoute(builder: (_) => const HomePage());
+    // Debug: Log the error for troubleshooting
+    // print('NAVIGATION ERROR: Route "$name" not found. Message: $message');
+
+    // Show a proper error page instead of redirecting to home
+    return MaterialPageRoute(
+      builder:
+          (context) => Scaffold(
+            appBar: AppBar(title: const Text('Error de navegación')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Error de navegación',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No se pudo navegar a: $name',
+                      textAlign: TextAlign.center,
+                    ),
+                    if (message.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Detalle: $message',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed:
+                          () => Navigator.of(
+                            context,
+                          ).pushReplacementNamed('/home'),
+                      child: const Text('Volver al inicio'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+    );
   }
 }

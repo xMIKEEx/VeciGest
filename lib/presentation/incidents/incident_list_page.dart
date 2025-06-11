@@ -8,6 +8,7 @@ import 'package:vecigest/presentation/incidents/new_incident_page.dart';
 import 'package:vecigest/presentation/incidents/incident_detail_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
+import 'package:vecigest/data/services/user_display_service.dart';
 
 class IncidentListPage extends StatefulWidget {
   final Function(Widget)? onNavigate;
@@ -20,7 +21,11 @@ class IncidentListPage extends StatefulWidget {
 
 class _IncidentListPageState extends State<IncidentListPage> {
   final IncidentService _incidentService = IncidentService();
+  final UserDisplayService _userDisplayService = UserDisplayService();
   bool _isAdmin = false;
+
+  // Cache for user display info
+  final Map<String, Map<String, dynamic>> _userDisplayCache = {};
 
   @override
   void initState() {
@@ -36,6 +41,23 @@ class _IncidentListPageState extends State<IncidentListPage> {
         setState(() => _isAdmin = true);
       }
     }
+  }
+
+  Future<Map<String, dynamic>?> _getUserDisplayInfo(String userId) async {
+    // Check cache first
+    if (_userDisplayCache.containsKey(userId)) {
+      return _userDisplayCache[userId];
+    }
+
+    // Fetch from service
+    final userInfo = await _userDisplayService.getUserDisplayInfo(userId);
+
+    // Cache the result
+    if (userInfo != null) {
+      _userDisplayCache[userId] = userInfo;
+    }
+
+    return userInfo;
   }
 
   void _navigateToNewIncident() {
@@ -301,9 +323,12 @@ class _IncidentListPageState extends State<IncidentListPage> {
           ),
           child: InkWell(
             onTap: () {
+              print('DEBUG: Tapping incident ${incident.title}');
               if (widget.onNavigate != null) {
+                print('DEBUG: Using onNavigate callback');
                 widget.onNavigate!(IncidentDetailPage(incident: incident));
               } else {
+                print('DEBUG: Using Navigator.pushNamed');
                 Navigator.pushNamed(
                   context,
                   AppRoutes.incidentDetail,
@@ -452,15 +477,36 @@ class _IncidentListPageState extends State<IncidentListPage> {
               color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
             const SizedBox(width: 8),
-            Text(
-              'Creado por: ${incident.createdBy}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withOpacity(0.8),
+            Expanded(
+              child: FutureBuilder<Map<String, dynamic>?>(
+                future: _getUserDisplayInfo(incident.createdBy),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Text(
+                      'Cargando...',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface.withOpacity(0.8),
+                      ),
+                    );
+                  }
+
+                  final userInfo = snapshot.data;
+                  final displayText = userInfo?['propertyDisplay'] ?? 'Usuario';
+
+                  return Text(
+                    'Creado por: $displayText',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  );
+                },
               ),
             ),
-            const Spacer(),
             if (incident.photosUrls?.isNotEmpty ?? false) ...[
+              const SizedBox(width: 8),
               Icon(
                 Icons.photo_library,
                 size: 16,

@@ -40,22 +40,22 @@ class PropertyService {
   Future<PropertyModel> createProperty({
     required String communityId,
     required String number,
-    required String floor,
-    required String block,
+    required String piso,
+    required String portal,
     required int size,
     required String ownerId,
     String? userId,
-    Map<String, dynamic>? additionalInfo,
+    String? informacionComplementaria,
   }) async {
     final propertyData = {
       'number': number,
-      'floor': floor,
-      'block': block,
+      'piso': piso,
+      'portal': portal,
       'size': size,
       'ownerId': ownerId,
       'userId': userId,
       'createdAt': Timestamp.fromDate(DateTime.now()),
-      'additionalInfo': additionalInfo,
+      'informacionComplementaria': informacionComplementaria,
     };
     final docRef = await _viviendasRef(communityId).add(propertyData);
     final newDoc = await docRef.get();

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:vecigest/data/services/reservation_service.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
+import 'package:vecigest/data/services/user_display_service.dart';
 import 'package:vecigest/domain/models/reservation_model.dart';
 
 class ReservationListPage extends StatefulWidget {
@@ -17,10 +18,14 @@ class ReservationListPage extends StatefulWidget {
 class _ReservationListPageState extends State<ReservationListPage> {
   final ReservationService _reservationService = ReservationService();
   final UserRoleService _userRoleService = UserRoleService();
+  final UserDisplayService _userDisplayService = UserDisplayService();
 
   bool _isAdmin = false;
   String? _communityId;
   bool _isInitialized = false;
+
+  // Cache para información de usuarios
+  final Map<String, Map<String, dynamic>> _userDisplayCache = {};
   @override
   void initState() {
     super.initState();
@@ -41,6 +46,26 @@ class _ReservationListPageState extends State<ReservationListPage> {
 
   void _navigateToNewReservation() {
     Navigator.of(context).pushNamed('/new-reservation');
+  }
+
+  Future<String> _getUserDisplayInfo(String userId) async {
+    // Verificar cache primero
+    if (_userDisplayCache.containsKey(userId)) {
+      return _userDisplayCache[userId]!['propertyDisplay'] as String;
+    }
+
+    try {
+      final userInfo = await _userDisplayService.getUserDisplayInfo(userId);
+      if (userInfo != null) {
+        _userDisplayCache[userId] = userInfo;
+        return userInfo['propertyDisplay'] as String;
+      }
+    } catch (e) {
+      print('Error getting user display info: $e');
+    }
+
+    // Fallback al userId si no se puede obtener información
+    return userId;
   }
 
   Future<void> _showDeleteConfirmation(Reservation reservation) async {
@@ -525,12 +550,18 @@ class _ReservationListPageState extends State<ReservationListPage> {
                       color: colorScheme.onSurface.withOpacity(0.6),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      'Reservado por: ${reservation.userId}',
-                      style: TextStyle(
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                        fontSize: 12,
-                      ),
+                    FutureBuilder<String>(
+                      future: _getUserDisplayInfo(reservation.userId),
+                      builder: (context, snapshot) {
+                        final displayText = snapshot.data ?? reservation.userId;
+                        return Text(
+                          'Reservado por: $displayText',
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                            fontSize: 12,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

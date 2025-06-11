@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:vecigest/data/services/property_service.dart';
+import 'package:vecigest/domain/models/property_model.dart';
 import 'user_avatar.dart';
 
-class ContextInfoCard extends StatelessWidget {
+class ContextInfoCard extends StatefulWidget {
   final Map<String, dynamic>? userRole;
   final bool isAdmin;
   const ContextInfoCard({
@@ -11,16 +13,79 @@ class ContextInfoCard extends StatelessWidget {
     required this.isAdmin,
   });
 
+  @override
+  State<ContextInfoCard> createState() => _ContextInfoCardState();
+}
+
+class _ContextInfoCardState extends State<ContextInfoCard> {
+  final PropertyService _propertyService = PropertyService();
+  PropertyModel? _propertyDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPropertyDetails();
+  }
+
+  @override
+  void didUpdateWidget(ContextInfoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userRole != widget.userRole) {
+      _loadPropertyDetails();
+    }
+  }
+
+  Future<void> _loadPropertyDetails() async {
+    final viviendaId = widget.userRole?['viviendaId'] as String?;
+    final communityId = widget.userRole?['communityId'] as String?;
+    
+    if (viviendaId != null && viviendaId.isNotEmpty && 
+        communityId != null && communityId.isNotEmpty) {
+      try {
+        final property = await _propertyService.getPropertyById(
+          communityId,
+          viviendaId,
+        );
+        if (mounted) {
+          setState(() {
+            _propertyDetails = property;
+          });
+        }
+      } catch (e) {
+        print('Error loading property details: $e');
+      }
+    }
+  }
+
   String _getHousingDisplay() {
-    final viviendaId = userRole?['viviendaId'] as String?;
+    if (_propertyDetails != null) {
+      final parts = <String>[];
+      
+      if (_propertyDetails!.number.isNotEmpty) {
+        parts.add(_propertyDetails!.number);
+      }
+      
+      if (_propertyDetails!.piso.isNotEmpty) {
+        parts.add('${_propertyDetails!.piso}º');
+      }
+      
+      if (_propertyDetails!.portal.isNotEmpty) {
+        parts.add('Portal ${_propertyDetails!.portal}');
+      }
+      
+      return parts.isNotEmpty ? parts.join(' • ') : 'Mi Vivienda';
+    }
+    
+    // Fallback a la información existente
+    final viviendaId = widget.userRole?['viviendaId'] as String?;
     if (viviendaId != null && viviendaId.isNotEmpty) {
       return viviendaId;
     }
     return 'Mi Vivienda';
   }
-
+  
   String _getCommunityDisplay() {
-    final communityName = userRole?['communityName'] as String?;
+    final communityName = widget.userRole?['communityName'] as String?;
     if (communityName != null && communityName.isNotEmpty) {
       return communityName;
     }
@@ -28,7 +93,7 @@ class ContextInfoCard extends StatelessWidget {
   }
 
   String _getRoleDisplay() {
-    final role = userRole?['role'] as String?;
+    final role = widget.userRole?['role'] as String?;
     if (role == 'admin') {
       return 'Administrador';
     } else if (role == 'user') {
@@ -47,7 +112,7 @@ class ContextInfoCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            UserAvatar(user: user, userRole: userRole),
+            UserAvatar(user: user, userRole: widget.userRole),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -62,11 +127,14 @@ class ContextInfoCard extends StatelessWidget {
                         color: theme.colorScheme.onSurface.withOpacity(0.8),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        _getHousingDisplay(),
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Inter',
+                      Flexible(
+                        child: Text(
+                          _getHousingDisplay(),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Inter',
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -81,11 +149,14 @@ class ContextInfoCard extends StatelessWidget {
                         color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        _getCommunityDisplay(),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          fontFamily: 'Inter',
+                      Flexible(
+                        child: Text(
+                          _getCommunityDisplay(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            fontFamily: 'Inter',
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -95,18 +166,21 @@ class ContextInfoCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        isAdmin
+                        widget.isAdmin
                             ? Icons.admin_panel_settings
                             : Icons.person_outline,
                         size: 16,
                         color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        _getRoleDisplay(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                          fontFamily: 'Inter',
+                      Flexible(
+                        child: Text(
+                          _getRoleDisplay(),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            fontFamily: 'Inter',
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -114,7 +188,7 @@ class ContextInfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (isAdmin)
+            if (widget.isAdmin)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,

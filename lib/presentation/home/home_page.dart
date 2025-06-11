@@ -157,6 +157,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   // Navigation methods using NavigationManager
   void _pushToCurrentTab(Widget page) {
+    print(
+      'DEBUG: _pushToCurrentTab called with ${page.runtimeType} for tab $_currentIndex',
+    );
     setState(() {
       _navigationManager.pushToTab(_currentIndex, page);
     });

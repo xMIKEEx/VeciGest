@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/data/services/community_service.dart';
 import 'package:vecigest/data/services/user_service.dart';
+import 'package:vecigest/data/services/property_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CreateCommunityPage extends StatefulWidget {
@@ -18,13 +19,17 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
   final _resourceCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
-  final List<String> _resources = [];
-  // Propiedades para el usuario administrador
+  final List<String> _resources =
+      []; // Propiedades para el usuario administrador
   String? _userId;
   String? _userEmail;
   String? _displayName;
   String? _fullName;
-  String? _housing;
+  String? _phone;
+  String? _viviendaNumber;
+  String? _viviendaPiso;
+  String? _viviendaPortal;
+  String? _viviendaInfo;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -33,18 +38,23 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
     // Debug: Verificar los argumentos recibidos
     print('DEBUG CreateCommunity - args: $args');
     print('DEBUG CreateCommunity - args type: ${args.runtimeType}');
-
     if (args != null && args is Map<String, dynamic>) {
       _userId = args['userId'];
       _userEmail = args['userEmail'];
       _displayName = args['displayName'];
       _fullName = args['fullName'];
-      _housing = args['housing'];
+      _phone = args['phone'];
+      _viviendaNumber = args['viviendaNumber'];
+      _viviendaPiso = args['viviendaPiso'];
+      _viviendaPortal = args['viviendaPortal'];
+      _viviendaInfo = args['viviendaInfo'];
 
       // Debug: Verificar los datos recibidos
       print('DEBUG CreateCommunity - fullName: "$_fullName"');
-      print('DEBUG CreateCommunity - housing: "$_housing"');
-      print('DEBUG CreateCommunity - housing type: ${_housing.runtimeType}');
+      print('DEBUG CreateCommunity - phone: "$_phone"');
+      print(
+        'DEBUG CreateCommunity - vivienda: "$_viviendaNumber-$_viviendaPiso-$_viviendaPortal"',
+      );
 
       if (_userEmail != null && _emailCtrl.text.isEmpty) {
         _emailCtrl.text = _userEmail!;
@@ -79,20 +89,40 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
         resources: _resources,
       ); // Asociar el usuario admin a la comunidad creada
       if (_userId != null && _userEmail != null && _displayName != null) {
-        // Debug: Verificar datos antes de crear usuario
+        // Debug: Verificar datos antes de crear usuario y vivienda
         print('DEBUG CreateCommunity - Before createAdminUser:');
         print('  fullName: "$_fullName"');
-        print('  housing: "$_housing"');
-        print('  housing type: ${_housing.runtimeType}');
+        print('  phone: "$_phone"');
+        print('  vivienda: "$_viviendaNumber-$_viviendaPiso-$_viviendaPortal"');
 
-        await UserService().createAdminUser(
+        // 1. Crear la vivienda del administrador
+        final property = await PropertyService().createProperty(
+          communityId: community.id,
+          number: _viviendaNumber ?? '',
+          piso: _viviendaPiso ?? '',
+          portal: _viviendaPortal ?? '',
+          size: 0, // Tamaño por defecto
+          ownerId: _userId!,
+          userId: _userId!, // El admin se asigna a su propia vivienda
+          informacionComplementaria:
+              _viviendaInfo?.isNotEmpty == true ? _viviendaInfo : null,
+        );
+
+        // 2. Crear el usuario administrador con referencia a su vivienda
+        await UserService().createUserByRole(
           uid: _userId!,
           email: _userEmail!,
           displayName: _displayName!,
           communityId: community.id,
+          role: 'admin',
           fullName: _fullName,
-          housing: _housing,
+          phone: _phone,
+          viviendaId: property.viviendaId,
+          housing:
+              property
+                  .fullIdentifier, // Usar el identificador completo de la vivienda
         );
+
         // Navegar a la home
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');

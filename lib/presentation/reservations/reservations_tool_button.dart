@@ -35,7 +35,7 @@ class ReservationsToolButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.15),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
@@ -58,7 +58,7 @@ class ReservationsToolButton extends StatelessWidget {
                 'Gestionar espacios',
                 style: TextStyle(
                   fontSize: 12,
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],

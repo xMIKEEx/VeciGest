@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vecigest/data/services/chat_service.dart';
-import 'package:vecigest/domain/models/thread_model.dart';
 import 'package:vecigest/presentation/incidents/incident_notifications_widget.dart';
 import 'package:vecigest/presentation/polls/poll_notifications_widget.dart';
-import 'notification_tile.dart';
+import 'package:vecigest/presentation/chat/chat_notifications_widget.dart';
 
 class NotificationsCard extends StatelessWidget {
   final Function(int) onNavigateToTab;
@@ -41,34 +39,13 @@ class NotificationsCard extends StatelessWidget {
 
         // 1. Incidencias (Incident notifications)
         const IncidentNotificationsWidget(),
-        const SizedBox(height: 8), // 2. Encuestas (Poll notifications)
-        const PollNotificationsWidget(),
         const SizedBox(height: 8),
 
-        // 3. Chats (Chat notifications)
-        _buildChatNotifications(),
+        // 2. Encuestas (Poll notifications)
+        const PollNotificationsWidget(),
+        const SizedBox(height: 8), // 3. Chats (Chat notifications)
+        ChatNotificationsWidget(onTap: () => onNavigateToTab(3)),
       ],
-    );
-  }
-
-  Widget _buildChatNotifications() {
-    return StreamBuilder<List<ThreadModel>>(
-      stream: ChatService().getThreads(),
-      builder: (context, snapshot) {
-        final threads = snapshot.data ?? [];
-        final unreadCount = threads.length;
-
-        return NotificationTile(
-          icon: Icons.chat_bubble,
-          title: 'Mensajes sin leer',
-          subtitle:
-              unreadCount > 0
-                  ? '$unreadCount hilos activos'
-                  : 'No hay mensajes nuevos',
-          color: unreadCount > 0 ? Colors.blue : Colors.grey,
-          onTap: () => onNavigateToTab(3),
-        );
-      },
     );
   }
 }

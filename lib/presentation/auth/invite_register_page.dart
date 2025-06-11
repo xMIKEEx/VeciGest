@@ -106,15 +106,14 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
       if (_propertyDetails!.number.isNotEmpty) {
         parts.add(_propertyDetails!.number);
       }
-
-      if (_propertyDetails!.block.isNotEmpty &&
-          _propertyDetails!.block != 'N/A') {
-        parts.add('portal ${_propertyDetails!.block}');
+      if (_propertyDetails!.portal.isNotEmpty &&
+          _propertyDetails!.portal != 'N/A') {
+        parts.add('portal ${_propertyDetails!.portal}');
       }
 
-      if (_propertyDetails!.floor.isNotEmpty &&
-          _propertyDetails!.floor != 'N/A') {
-        parts.add('piso ${_propertyDetails!.floor}');
+      if (_propertyDetails!.piso.isNotEmpty &&
+          _propertyDetails!.piso != 'N/A') {
+        parts.add('piso ${_propertyDetails!.piso}');
       }
 
       return parts.isNotEmpty ? parts.join(' ') : 'Vivienda asignada';

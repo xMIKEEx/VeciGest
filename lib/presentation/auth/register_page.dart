@@ -13,7 +13,16 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _housingController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
+  // Campos para la vivienda del administrador
+  final TextEditingController _viviendaNumberController =
+      TextEditingController();
+  final TextEditingController _viviendaPisoController = TextEditingController();
+  final TextEditingController _viviendaPortalController =
+      TextEditingController();
+  final TextEditingController _viviendaInfoController = TextEditingController();
+
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
@@ -33,11 +42,34 @@ class _RegisterPageState extends State<RegisterPage> {
       });
       return;
     }
-
     if (_fullNameController.text.trim().isEmpty) {
       setState(() {
         _isLoading = false;
         _error = 'El nombre completo es obligatorio';
+      });
+      return;
+    }
+
+    if (_phoneController.text.trim().isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _error = 'El teléfono es obligatorio';
+      });
+      return;
+    }
+
+    if (_viviendaNumberController.text.trim().isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _error = 'El número de vivienda es obligatorio';
+      });
+      return;
+    }
+
+    if (_viviendaPisoController.text.trim().isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _error = 'El piso es obligatorio';
       });
       return;
     }
@@ -52,11 +84,17 @@ class _RegisterPageState extends State<RegisterPage> {
       if (user != null && mounted) {
         // Debug: Verificar los datos antes de enviarlos
         final fullName = _fullNameController.text.trim();
-        final housing = _housingController.text.trim();
+        final phone = _phoneController.text.trim();
+        final viviendaNumber = _viviendaNumberController.text.trim();
+        final viviendaPiso = _viviendaPisoController.text.trim();
+        final viviendaPortal = _viviendaPortalController.text.trim();
+        final viviendaInfo = _viviendaInfoController.text.trim();
+
         print('DEBUG RegisterPage: fullName = "$fullName"');
-        print('DEBUG RegisterPage: housing = "$housing"');
-        print('DEBUG RegisterPage: housing.isEmpty = ${housing.isEmpty}');
-        print('DEBUG RegisterPage: housing will be sent as = "$housing"');
+        print('DEBUG RegisterPage: phone = "$phone"');
+        print(
+          'DEBUG RegisterPage: vivienda = "$viviendaNumber-$viviendaPiso-$viviendaPortal"',
+        );
 
         // Llevamos al usuario a crear la comunidad, pasando los datos necesarios
         Navigator.of(context).pushReplacementNamed(
@@ -66,8 +104,11 @@ class _RegisterPageState extends State<RegisterPage> {
             'userEmail': user.email ?? '',
             'displayName': user.email?.split('@')[0] ?? '',
             'fullName': fullName,
-            'housing':
-                housing, // Enviamos el valor tal como está, sin convertir a null
+            'phone': phone,
+            'viviendaNumber': viviendaNumber,
+            'viviendaPiso': viviendaPiso,
+            'viviendaPortal': viviendaPortal,
+            'viviendaInfo': viviendaInfo,
           },
         );
       }
@@ -285,7 +326,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
 
                       const SizedBox(height: 20),
-
                       TextFormField(
                         controller: _fullNameController,
                         decoration: InputDecoration(
@@ -302,15 +342,116 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(height: 20),
 
                       TextFormField(
-                        controller: _housingController,
+                        controller: _phoneController,
                         decoration: InputDecoration(
-                          labelText: 'Vivienda',
-                          hintText: 'Ej: Portal A, 2º B',
-                          prefixIcon: const Icon(Icons.home_outlined),
+                          labelText: 'Teléfono *',
+                          hintText: '+34 123 456 789',
+                          prefixIcon: const Icon(Icons.phone_outlined),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      Text(
+                        'Datos de tu vivienda',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Estos datos identificarán tu vivienda en la comunidad',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withOpacity(0.8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _viviendaNumberController,
+                        decoration: InputDecoration(
+                          labelText: 'Número/Letra *',
+                          hintText: 'Ej: 2B, 101, etc.',
+                          prefixIcon: const Icon(Icons.tag_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.next,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _viviendaPisoController,
+                        decoration: InputDecoration(
+                          labelText: 'Piso *',
+                          hintText: 'Ej: 2, Planta Baja, etc.',
+                          prefixIcon: const Icon(Icons.layers_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.next,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _viviendaPortalController,
+                        decoration: InputDecoration(
+                          labelText: 'Portal',
+                          hintText: 'Ej: A, Edificio Principal, etc.',
+                          prefixIcon: const Icon(Icons.apartment_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.next,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _viviendaInfoController,
+                        decoration: InputDecoration(
+                          labelText: 'Información complementaria',
+                          hintText:
+                              'Ej: Reformada en 2023, Ático con terraza...',
+                          prefixIcon: const Icon(Icons.notes_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        maxLines: 2,
                         textInputAction: TextInputAction.done,
                       ),
 
@@ -418,7 +559,11 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose();
     _confirmController.dispose();
     _fullNameController.dispose();
-    _housingController.dispose();
+    _phoneController.dispose();
+    _viviendaNumberController.dispose();
+    _viviendaPisoController.dispose();
+    _viviendaPortalController.dispose();
+    _viviendaInfoController.dispose();
     super.dispose();
   }
 }
