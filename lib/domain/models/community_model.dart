@@ -6,6 +6,7 @@ class CommunityModel {
   final String address;
   final String contactEmail;
   final DateTime createdAt;
+  final List<String> resources;
 
   CommunityModel({
     required this.id,
@@ -13,8 +14,8 @@ class CommunityModel {
     required this.address,
     required this.contactEmail,
     required this.createdAt,
+    this.resources = const [],
   });
-
   factory CommunityModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return CommunityModel(
@@ -23,15 +24,16 @@ class CommunityModel {
       address: data['address'] ?? '',
       contactEmail: data['contactEmail'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
+      resources: List<String>.from(data['resources'] ?? []),
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'address': address,
       'contactEmail': contactEmail,
       'createdAt': Timestamp.fromDate(createdAt),
+      'resources': resources,
     };
   }
 }

@@ -36,11 +36,6 @@ class FloatingBottomNavigation extends StatelessWidget {
                 Icons.report_problem_outlined,
                 Icons.report_problem,
                 'Incidencias',
-                badgeStream: incidentService.getIncidents(),
-                badgeExtractor:
-                    (incidents) =>
-                        incidents.where((i) => i.status == 'open').length,
-                badgeColor: Colors.red,
               ),
               _buildNavItem(
                 context,
@@ -63,9 +58,6 @@ class FloatingBottomNavigation extends StatelessWidget {
                 Icons.chat_bubble_outline,
                 Icons.chat_bubble,
                 'Chat',
-                badgeStream: chatService.getThreads(),
-                badgeExtractor: (threads) => threads.length,
-                badgeColor: Colors.blue,
               ),
               _buildNavItem(
                 context,
@@ -88,9 +80,6 @@ class FloatingBottomNavigation extends StatelessWidget {
     IconData filledIcon,
     String label, {
     bool isHome = false,
-    Stream? badgeStream,
-    Function? badgeExtractor,
-    Color? badgeColor,
   }) {
     final isSelected = currentIndex == index;
 
@@ -112,7 +101,7 @@ class FloatingBottomNavigation extends StatelessWidget {
         case 4: // Encuestas
           return Colors.purple.shade600;
         default:
-          return Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+          return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
       }
     }
 
@@ -123,56 +112,19 @@ class FloatingBottomNavigation extends StatelessWidget {
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+                  ? Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.15)
                   : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              children: [
-                Icon(
-                  isSelected ? filledIcon : outlinedIcon,
-                  color: getIconColor(),
-                  size: isHome ? 28 : 24,
-                ),
-                if (badgeStream != null && badgeExtractor != null)
-                  StreamBuilder(
-                    stream: badgeStream,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const SizedBox.shrink();
-
-                      final count = badgeExtractor(snapshot.data);
-                      if (count == 0) return const SizedBox.shrink();
-
-                      return Positioned(
-                        right: -6,
-                        top: -6,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: badgeColor ?? Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Text(
-                            count > 99 ? '99+' : count.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-              ],
+            Icon(
+              isSelected ? filledIcon : outlinedIcon,
+              color: getIconColor(),
+              size: isHome ? 28 : 24,
             ),
           ],
         ),

@@ -31,13 +31,22 @@ class FloatingTopBar extends StatelessWidget {
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(
                       context,
-                    ).colorScheme.primaryContainer.withOpacity(0.3),
+                    ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-              if (!hasSubPages) const SizedBox(width: 8),
+              if (!hasSubPages)
+                Container(
+                  margin: const EdgeInsets.only(left: 8, right: 20),
+                  child: Image.asset(
+                    'assets/images/logo1.png',
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               Expanded(
                 child: Text(
                   'VeciGest',
@@ -56,7 +65,7 @@ class FloatingTopBar extends StatelessWidget {
                 style: IconButton.styleFrom(
                   backgroundColor: Theme.of(
                     context,
-                  ).colorScheme.secondaryContainer.withOpacity(0.3),
+                  ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

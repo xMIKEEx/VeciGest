@@ -3,18 +3,19 @@ import 'package:vecigest/domain/models/community_model.dart';
 
 class CommunityService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   Future<CommunityModel> createCommunity({
     required String name,
     required String address,
     required String contactEmail,
     required String createdBy,
+    List<String> resources = const [],
   }) async {
     final docRef = await _firestore.collection('communities').add({
       'name': name,
       'address': address,
       'contactEmail': contactEmail,
       'createdBy': createdBy,
+      'resources': resources,
       'createdAt': FieldValue.serverTimestamp(),
     });
     final doc = await docRef.get();
@@ -32,11 +33,18 @@ class CommunityService {
     required String name,
     required String address,
     required String contactEmail,
+    List<String>? resources,
   }) async {
-    await _firestore.collection('communities').doc(id).update({
+    final updateData = <String, dynamic>{
       'name': name,
       'address': address,
       'contactEmail': contactEmail,
-    });
+    };
+
+    if (resources != null) {
+      updateData['resources'] = resources;
+    }
+
+    await _firestore.collection('communities').doc(id).update(updateData);
   }
 }

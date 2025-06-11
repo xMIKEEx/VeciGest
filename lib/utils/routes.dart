@@ -18,6 +18,7 @@ import 'package:vecigest/presentation/documents/upload_doc_page.dart';
 import 'package:vecigest/presentation/documents/document_detail_page.dart';
 import 'package:vecigest/presentation/chat/new_chat_group_page.dart';
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
+import 'package:vecigest/presentation/reservations/new_reservation_page.dart';
 import 'package:vecigest/presentation/properties/property_list_page.dart';
 import 'package:vecigest/presentation/properties/property_detail_page.dart';
 import 'package:vecigest/presentation/properties/invitations_list_page.dart';
@@ -54,6 +55,7 @@ class AppRoutes {
   static const String newIncident = '/new-incident';
   static const String uploadDocument = '/upload-document';
   static const String documentDetail = '/document-detail';
+  static const String newReservation = '/new-reservation';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -125,6 +127,8 @@ class AppRoutes {
         );
       case invitations:
         return MaterialPageRoute(builder: (_) => const InvitationsListPage());
+      case newReservation:
+        return MaterialPageRoute(builder: (_) => const NewReservationPage());
       default:
         return _errorRoute(settings.name);
     }

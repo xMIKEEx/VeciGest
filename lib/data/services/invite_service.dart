@@ -53,6 +53,14 @@ class InviteService {
     final inviteDoc =
         await _firestore.collection('invitationTokens').doc(inviteId).get();
     final invite = InviteModel.fromFirestore(inviteDoc);
+
+    // Primero marcar el token como usado para evitar problemas de estado
+    await _firestore.collection('invitationTokens').doc(inviteId).update({
+      'used': true,
+      'usedBy': userId,
+    });
+
+    // Luego intentar asignar el usuario a la propiedad si es necesario
     if (invite.viviendaId.isNotEmpty && invite.role == 'resident') {
       try {
         await _propertyService.assignUserToProperty(
@@ -61,15 +69,11 @@ class InviteService {
           userId,
         );
       } catch (e) {
-        rethrow;
+        // Si ya está asignado, no es un error crítico
+        // Solo registramos el error pero no lo relanzamos
+        print('Info: Usuario ya asignado o error en asignación: $e');
       }
     }
-    await _firestore.collection('invitationTokens').doc(inviteId).update({
-      'used': true,
-      'usedBy': userId,
-    });
-    // Si quieres actualizar la vivienda para quitar el flag de invitación pendiente:
-    // await _propertyService.updateProperty(invite.communityId, invite.viviendaId, {'invitePending': false});
   }
 
   // Método para obtener todas las invitaciones activas (sin filtro de expiración)

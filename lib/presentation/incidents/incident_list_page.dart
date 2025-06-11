@@ -63,7 +63,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 180),
+            padding: const EdgeInsets.only(top: 238),
             child: _buildIncidentList(),
           ),
           // Floating header
@@ -88,7 +88,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
             borderRadius: BorderRadius.circular(18),
           ),
           child: Container(
-            height: 140,
+            height: 188,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -203,7 +203,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
             setState(() {});
           },
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
             itemCount: incidents.length,
             itemBuilder: (ctx, i) => _buildIncidentCard(incidents[i]),
           ),
@@ -216,7 +216,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
     final colorScheme = Theme.of(context).colorScheme;
     return ListView.builder(
       itemCount: 6,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       itemBuilder:
           (_, __) => Shimmer.fromColors(
             baseColor: colorScheme.surfaceContainerHighest,

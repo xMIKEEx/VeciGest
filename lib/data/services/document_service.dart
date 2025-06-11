@@ -4,13 +4,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:vecigest/domain/models/document_model.dart';
 
 class DocumentService {
-  final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
   final CollectionReference _documentsRef;
 
   DocumentService({FirebaseFirestore? firestore, FirebaseStorage? storage})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _storage = storage ?? FirebaseStorage.instance,
+    : _storage = storage ?? FirebaseStorage.instance,
       _documentsRef = (firestore ?? FirebaseFirestore.instance).collection(
         'documents',
       );
@@ -50,7 +48,7 @@ class DocumentService {
           '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
       final storagePath = 'documents/$folder/$fileName';
       final ref = _storage.ref().child(storagePath);
-      final uploadTask = await ref.putFile(file);
+      await ref.putFile(file);
       final url = await ref.getDownloadURL();
       final docData = {
         'name': fileName,
@@ -78,7 +76,7 @@ class DocumentService {
           '${DateTime.now().millisecondsSinceEpoch}_${photoFile.path.split('/').last}';
       final storagePath = 'incidents/$incidentId/$fileName';
       final ref = FirebaseStorage.instance.ref().child(storagePath);
-      final uploadTask = await ref.putFile(photoFile);
+      await ref.putFile(photoFile);
       final url = await ref.getDownloadURL();
       return url;
     } catch (e) {

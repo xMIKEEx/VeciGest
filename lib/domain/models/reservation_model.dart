@@ -4,6 +4,7 @@ class Reservation {
   final String id;
   final String resourceName;
   final String userId;
+  final String communityId;
   final DateTime startTime;
   final DateTime endTime;
 
@@ -11,25 +12,26 @@ class Reservation {
     required this.id,
     required this.resourceName,
     required this.userId,
+    required this.communityId,
     required this.startTime,
     required this.endTime,
   });
-
   factory Reservation.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Reservation(
       id: doc.id,
       resourceName: data['resourceName'] ?? '',
       userId: data['userId'] ?? '',
+      communityId: data['communityId'] ?? '',
       startTime: (data['startTime'] as Timestamp).toDate(),
       endTime: (data['endTime'] as Timestamp).toDate(),
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'resourceName': resourceName,
       'userId': userId,
+      'communityId': communityId,
       'startTime': Timestamp.fromDate(startTime),
       'endTime': Timestamp.fromDate(endTime),
     };

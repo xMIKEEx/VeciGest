@@ -22,7 +22,8 @@ class _ReservationListPageState extends State<ReservationListPage>
   late AnimationController _fabAnimationController;
   late Animation<double> _fabScaleAnimation;
   bool _isAdmin = false;
-
+  String? _communityId;
+  bool _isInitialized = false;
   @override
   void initState() {
     super.initState();
@@ -56,6 +57,8 @@ class _ReservationListPageState extends State<ReservationListPage>
       final userRole = await _userRoleService.getUserRoleAndCommunity(user.uid);
       setState(() {
         _isAdmin = userRole?['role'] == 'admin';
+        _communityId = userRole?['communityId'];
+        _isInitialized = true;
       });
     }
   }
@@ -84,7 +87,7 @@ class _ReservationListPageState extends State<ReservationListPage>
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 180),
+            padding: const EdgeInsets.only(top: 238),
             child: _buildReservationList(),
           ),
           // Floating header
@@ -109,7 +112,7 @@ class _ReservationListPageState extends State<ReservationListPage>
             borderRadius: BorderRadius.circular(18),
           ),
           child: Container(
-            height: 140,
+            height: 188,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -187,12 +190,7 @@ class _ReservationListPageState extends State<ReservationListPage>
       scale: _fabScaleAnimation,
       child: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Navigate to new reservation page
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Función de nueva reserva próximamente'),
-            ),
-          );
+          Navigator.of(context).pushNamed('/new-reservation');
         },
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
@@ -207,8 +205,21 @@ class _ReservationListPageState extends State<ReservationListPage>
   }
 
   Widget _buildReservationList() {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    Stream<List<Reservation>> reservationStream;
+    if (_communityId != null) {
+      reservationStream = _reservationService.getReservationsByCommunity(
+        _communityId!,
+      );
+    } else {
+      reservationStream = _reservationService.getReservations();
+    }
+
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getReservations(),
+      stream: reservationStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState();
@@ -229,7 +240,7 @@ class _ReservationListPageState extends State<ReservationListPage>
             setState(() {});
           },
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
             itemCount: reservations.length,
             itemBuilder:
                 (context, index) =>
@@ -243,7 +254,7 @@ class _ReservationListPageState extends State<ReservationListPage>
   Widget _buildLoadingState() {
     final colorScheme = Theme.of(context).colorScheme;
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       itemCount: 6,
       itemBuilder:
           (_, __) => Shimmer.fromColors(

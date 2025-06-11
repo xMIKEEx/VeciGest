@@ -90,17 +90,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             // Context Information Section
             CardWrapper(
               child: ContextInfoCard(userRole: _userRole, isAdmin: _isAdmin),
-            ), // Upcoming Events Section (Only for Admins)
-            if (_isAdmin)
-              CardWrapper(
-                child: UpcomingEventsCard(
-                  isAdmin: _isAdmin,
-                  onAddEvent:
-                      () => _pushToCurrentTab(
-                        NewEventPage(onClose: _popFromCurrentTab),
-                      ),
-                ),
+            ),
+
+            // Upcoming Events Section (Visible for all users)
+            CardWrapper(
+              child: UpcomingEventsCard(
+                isAdmin: _isAdmin,
+                onAddEvent:
+                    _isAdmin
+                        ? () => _pushToCurrentTab(
+                          NewEventPage(onClose: _popFromCurrentTab),
+                        )
+                        : () {}, // Empty function for non-admin users
               ),
+            ),
 
             // Notifications Section
             CardWrapper(
@@ -195,7 +198,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (hasSubPages) {
             _popFromCurrentTab();

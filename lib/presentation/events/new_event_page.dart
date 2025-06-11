@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vecigest/data/services/reservation_service.dart';
+import 'package:vecigest/data/services/user_role_service.dart';
 import 'package:vecigest/domain/models/reservation_model.dart';
 
 class NewEventPage extends StatefulWidget {
@@ -13,12 +15,14 @@ class NewEventPage extends StatefulWidget {
 
 class _NewEventPageState extends State<NewEventPage> {
   final _formKey = GlobalKey<FormState>();
+  final UserRoleService _userRoleService = UserRoleService();
   String eventName = '';
   String description = '';
   DateTime? startDate;
   TimeOfDay? startTime;
   DateTime? endDate;
   TimeOfDay? endTime;
+  String? _communityId;
 
   String? errorMsg;
   bool _isLoading = false;
@@ -97,11 +101,25 @@ class _NewEventPageState extends State<NewEventPage> {
     });
 
     try {
+      // Obtener la comunidad del usuario actual
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Usuario no autenticado');
+      }
+
+      final userRole = await _userRoleService.getUserRoleAndCommunity(user.uid);
+      _communityId = userRole?['communityId'];
+
+      if (_communityId == null) {
+        throw Exception('No se pudo obtener la comunidad del usuario');
+      }
+
       // Creamos el evento como una reserva especial (los eventos son un tipo de reserva)
       final event = Reservation(
         id: '',
         resourceName: eventName,
         userId: "admin", // Los eventos son creados por administradores
+        communityId: _communityId!,
         startTime: _startDateTime!,
         endTime: _endDateTime!,
       );

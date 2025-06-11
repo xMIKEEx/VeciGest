@@ -71,12 +71,55 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
         _inviteId = invite.id;
         _loading = false;
       });
+      // Load property details for better display
+      _loadPropertyDetails();
     } catch (e) {
       setState(() {
         _error = 'Error al validar el token: $e';
         _loading = false;
       });
     }
+  }
+
+  Future<void> _loadPropertyDetails() async {
+    if (_communityId != null && _viviendaId != null) {
+      try {
+        final property = await _propertyService.getPropertyById(
+          _communityId!,
+          _viviendaId!,
+        );
+        if (property != null) {
+          setState(() {
+            _propertyDetails = property;
+          });
+        }
+      } catch (e) {
+        print('Error loading property details: $e');
+      }
+    }
+  }
+
+  String _formatPropertyDisplay() {
+    if (_propertyDetails != null) {
+      final parts = <String>[];
+
+      if (_propertyDetails!.number.isNotEmpty) {
+        parts.add(_propertyDetails!.number);
+      }
+
+      if (_propertyDetails!.block.isNotEmpty &&
+          _propertyDetails!.block != 'N/A') {
+        parts.add('portal ${_propertyDetails!.block}');
+      }
+
+      if (_propertyDetails!.floor.isNotEmpty &&
+          _propertyDetails!.floor != 'N/A') {
+        parts.add('piso ${_propertyDetails!.floor}');
+      }
+
+      return parts.isNotEmpty ? parts.join(' ') : 'Vivienda asignada';
+    }
+    return 'Cargando datos de vivienda...';
   }
 
   Future<void> _register() async {
@@ -112,18 +155,13 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
           'phone': _phoneCtrl.text.trim(),
           'createdAt': FieldValue.serverTimestamp(),
         });
-        // Asignar userId a la vivienda
-        await FirebaseFirestore.instance
-            .collection('communities')
-            .doc(_communityId)
-            .collection('viviendas')
-            .doc(_viviendaId)
-            .update({'userId': user.uid});
-        // Marcar el token como usado
+
+        // Marcar el token como usado (esto también asigna el usuario a la vivienda)
         await InviteService().markInviteUsed(_inviteId!, user.uid);
-        // Redirigir temporalmente al home page aunque sea residente
+
+        // Redirigir al home page
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home_page');
+          Navigator.of(context).pushReplacementNamed('/home');
         }
         return;
       }
@@ -136,87 +174,397 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Registro por invitación')),
+        backgroundColor: colorScheme.surface,
         body: Center(
-          child: Text(
-            _error!,
-            style: const TextStyle(color: Colors.red, fontSize: 18),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: colorScheme.primary),
+              const SizedBox(height: 16),
+              Text(
+                'Validando invitación...',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
-    // Si no hay error y no está cargando, mostrar el formulario de registro
-    return Scaffold(
-      appBar: AppBar(title: const Text('Registro por invitación')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Te vas a registrar como vecino de la comunidad.',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Registro por invitación'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error de invitación',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Volver'),
+                    ),
+                  ],
                 ),
               ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Registro por invitación'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+
+              // Icono de invitación
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.secondary,
+                      colorScheme.secondary.withOpacity(0.8),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.secondary.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.group_add,
+                  size: 48,
+                  color: Colors.white,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              Text(
+                'Únete a la comunidad',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                'Completa tu registro para formar parte de la comunidad',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Card de información de la vivienda
               if (_viviendaId != null && _viviendaId!.isNotEmpty)
-                Text(
-                  'Vivienda asignada: $_viviendaId',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primaryContainer.withOpacity(0.3),
+                        colorScheme.primaryContainer.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.primary.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.home,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Vivienda asignada',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatPropertyDisplay(),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              const SizedBox(height: 16),
-              if (_email == null || _email!.isEmpty) ...[
-                TextField(
-                  onChanged: (value) => _email = value.trim(),
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextField(
-                controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Nombre completo'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _phoneCtrl,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordCtrl,
-                decoration: const InputDecoration(labelText: 'Contraseña'),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _confirmCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Confirmar contraseña',
-                ),
-                obscureText: true,
-              ),
+
               const SizedBox(height: 24),
-              if (_error != null)
-                Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
+
+              // Formulario
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ElevatedButton(
-                onPressed: _register,
-                child: const Text('Registrarse'),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Datos personales',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      if (_email == null || _email!.isEmpty) ...[
+                        TextFormField(
+                          onChanged: (value) => _email = value.trim(),
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            hintText: 'tu@email.com',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Nombre completo',
+                          hintText: 'Tu nombre y apellidos',
+                          prefixIcon: const Icon(Icons.person_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Teléfono',
+                          hintText: '+34 123 456 789',
+                          prefixIcon: const Icon(Icons.phone_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _passwordCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Contraseña',
+                          hintText: 'Mínimo 6 caracteres',
+                          prefixIcon: const Icon(Icons.lock_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _confirmCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Confirmar contraseña',
+                          hintText: 'Repetir contraseña',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        obscureText: true,
+                      ),
+
+                      if (_error != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 32),
+
+                      Container(
+                        width: double.infinity,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.secondary,
+                              colorScheme.secondary.withOpacity(0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.secondary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: _loading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon:
+                              _loading
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                  : const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                  ),
+                          label: Text(
+                            _loading ? 'Registrando...' : 'Completar registro',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
