@@ -14,41 +14,17 @@ class ReservationListPage extends StatefulWidget {
   State<ReservationListPage> createState() => _ReservationListPageState();
 }
 
-class _ReservationListPageState extends State<ReservationListPage>
-    with TickerProviderStateMixin {
+class _ReservationListPageState extends State<ReservationListPage> {
   final ReservationService _reservationService = ReservationService();
   final UserRoleService _userRoleService = UserRoleService();
 
-  late AnimationController _fabAnimationController;
-  late Animation<double> _fabScaleAnimation;
   bool _isAdmin = false;
   String? _communityId;
   bool _isInitialized = false;
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
     _checkAdminStatus();
-  }
-
-  @override
-  void dispose() {
-    _fabAnimationController.dispose();
-    super.dispose();
-  }
-
-  void _initializeControllers() {
-    _fabAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _fabScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _fabAnimationController,
-        curve: Curves.elasticOut,
-      ),
-    );
-    _fabAnimationController.forward();
   }
 
   Future<void> _checkAdminStatus() async {
@@ -60,6 +36,90 @@ class _ReservationListPageState extends State<ReservationListPage>
         _communityId = userRole?['communityId'];
         _isInitialized = true;
       });
+    }
+  }
+
+  void _navigateToNewReservation() {
+    Navigator.of(context).pushNamed('/new-reservation');
+  }
+
+  Future<void> _showDeleteConfirmation(Reservation reservation) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Eliminar Reserva'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Estás seguro de que quieres eliminar la reserva de "${reservation.resourceName}"?',
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Esta acción eliminará permanentemente la reserva.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Eliminar'),
+              ),
+            ],
+          ),
+    );
+
+    if (result == true) {
+      await _deleteReservation(reservation);
+    }
+  }
+
+  Future<void> _deleteReservation(Reservation reservation) async {
+    try {
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      await _reservationService.deleteReservation(reservation.id);
+
+      // Cerrar indicador de carga
+      if (mounted) Navigator.of(context).pop();
+
+      // Mostrar mensaje de éxito
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Reserva "${reservation.resourceName}" eliminada correctamente',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Cerrar indicador de carga si está abierto
+      if (mounted) Navigator.of(context).pop();
+
+      // Mostrar error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar la reserva: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -87,14 +147,13 @@ class _ReservationListPageState extends State<ReservationListPage>
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 238),
+            padding: const EdgeInsets.only(top: 286),
             child: _buildReservationList(),
           ),
           // Floating header
           _buildFloatingHeader(),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(theme),
     );
   }
 
@@ -172,6 +231,37 @@ class _ReservationListPageState extends State<ReservationListPage>
                           ],
                         ),
                       ),
+                      // Botón de crear reserva (solo para admins)
+                      if (_isAdmin)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed: _navigateToNewReservation,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: greenColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              minimumSize: const Size(0, 34),
+                            ),
+                            icon: const Icon(
+                              Icons.add_circle_outline,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Nueva Reserva',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -179,27 +269,6 @@ class _ReservationListPageState extends State<ReservationListPage>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget? _buildFloatingActionButton(ThemeData theme) {
-    if (!_isAdmin) return null;
-
-    return ScaleTransition(
-      scale: _fabScaleAnimation,
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).pushNamed('/new-reservation');
-        },
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_circle_outline),
-        label: const Text(
-          'Nueva Reserva',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 8,
       ),
     );
   }
@@ -234,7 +303,6 @@ class _ReservationListPageState extends State<ReservationListPage>
         if (reservations.isEmpty) {
           return _buildEmptyState();
         }
-
         return RefreshIndicator(
           onRefresh: () async {
             setState(() {});
@@ -243,8 +311,10 @@ class _ReservationListPageState extends State<ReservationListPage>
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
             itemCount: reservations.length,
             itemBuilder:
-                (context, index) =>
-                    _buildReservationCard(reservations[index], index),
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildReservationCard(reservations[index], index),
+                ),
           ),
         );
       },
@@ -344,112 +414,128 @@ class _ReservationListPageState extends State<ReservationListPage>
       reservation.endTime,
     );
 
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          // TODO: Navigate to reservation detail
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Detalle de reserva: ${reservation.resourceName}'),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.event_available,
-                      color: colorScheme.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          reservation.resourceName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            statusText,
-                            style: TextStyle(
-                              color: statusColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, size: 24, color: Colors.grey),
-                ],
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            // TODO: Navigate to reservation detail
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Detalle de reserva: ${reservation.resourceName}',
+                ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(Icons.schedule, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      reservation.formattedRange,
-                      style: TextStyle(
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.event_available,
                         color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        size: 24,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 16,
-                    color: colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Reservado por: ${reservation.userId}',
-                    style: TextStyle(
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                      fontSize: 12,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            reservation.resourceName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    // Botón de eliminar (solo para admins)
+                    if (_isAdmin)
+                      IconButton(
+                        onPressed: () => _showDeleteConfirmation(reservation),
+                        icon: const Icon(Icons.delete_outline),
+                        color: Colors.red,
+                        tooltip: 'Eliminar reserva',
+                      ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 24,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(Icons.schedule, size: 20, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        reservation.formattedRange,
+                        style: TextStyle(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 16,
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Reservado por: ${reservation.userId}',
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -12,13 +12,14 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _housingController = TextEditingController();
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
   String? _error;
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-
   void _register() async {
     setState(() {
       _isLoading = true;
@@ -33,6 +34,14 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (_fullNameController.text.trim().isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _error = 'El nombre completo es obligatorio';
+      });
+      return;
+    }
+
     try {
       // Solo creamos la cuenta de Firebase Auth
       final userCredential = await _authService.signUp(
@@ -40,8 +49,15 @@ class _RegisterPageState extends State<RegisterPage> {
         _passwordController.text.trim(),
       );
       final user = userCredential.user;
-
       if (user != null && mounted) {
+        // Debug: Verificar los datos antes de enviarlos
+        final fullName = _fullNameController.text.trim();
+        final housing = _housingController.text.trim();
+        print('DEBUG RegisterPage: fullName = "$fullName"');
+        print('DEBUG RegisterPage: housing = "$housing"');
+        print('DEBUG RegisterPage: housing.isEmpty = ${housing.isEmpty}');
+        print('DEBUG RegisterPage: housing will be sent as = "$housing"');
+
         // Llevamos al usuario a crear la comunidad, pasando los datos necesarios
         Navigator.of(context).pushReplacementNamed(
           '/create-community',
@@ -49,6 +65,9 @@ class _RegisterPageState extends State<RegisterPage> {
             'userId': user.uid,
             'userEmail': user.email ?? '',
             'displayName': user.email?.split('@')[0] ?? '',
+            'fullName': fullName,
+            'housing':
+                housing, // Enviamos el valor tal como está, sin convertir a null
           },
         );
       }
@@ -228,7 +247,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 20),
 
                       TextFormField(
@@ -254,6 +272,46 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      Text(
+                        'Información personal',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _fullNameController,
+                        decoration: InputDecoration(
+                          labelText: 'Nombre completo *',
+                          hintText: 'Ej: Juan Pérez García',
+                          prefixIcon: const Icon(Icons.person_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.next,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      TextFormField(
+                        controller: _housingController,
+                        decoration: InputDecoration(
+                          labelText: 'Vivienda',
+                          hintText: 'Ej: Portal A, 2º B',
+                          prefixIcon: const Icon(Icons.home_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textInputAction: TextInputAction.done,
                       ),
 
                       if (_error != null) ...[
@@ -359,6 +417,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _fullNameController.dispose();
+    _housingController.dispose();
     super.dispose();
   }
 }

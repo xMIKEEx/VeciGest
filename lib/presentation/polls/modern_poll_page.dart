@@ -77,7 +77,7 @@ class _ModernPollPageState extends State<ModernPollPage>
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 250),
+            padding: const EdgeInsets.only(top: 300),
             child: TabBarView(
               controller: _tabController,
               children: [

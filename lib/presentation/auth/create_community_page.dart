@@ -19,24 +19,38 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
   bool _loading = false;
   String? _error;
   final List<String> _resources = [];
-
   // Propiedades para el usuario administrador
   String? _userId;
   String? _userEmail;
   String? _displayName;
-
+  String? _fullName;
+  String? _housing;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
+
+    // Debug: Verificar los argumentos recibidos
+    print('DEBUG CreateCommunity - args: $args');
+    print('DEBUG CreateCommunity - args type: ${args.runtimeType}');
+
     if (args != null && args is Map<String, dynamic>) {
       _userId = args['userId'];
       _userEmail = args['userEmail'];
       _displayName = args['displayName'];
+      _fullName = args['fullName'];
+      _housing = args['housing'];
+
+      // Debug: Verificar los datos recibidos
+      print('DEBUG CreateCommunity - fullName: "$_fullName"');
+      print('DEBUG CreateCommunity - housing: "$_housing"');
+      print('DEBUG CreateCommunity - housing type: ${_housing.runtimeType}');
+
       if (_userEmail != null && _emailCtrl.text.isEmpty) {
         _emailCtrl.text = _userEmail!;
       }
     } else {
+      print('DEBUG CreateCommunity - args is null or not Map<String, dynamic>');
       // Fallback: obtener usuario actual de FirebaseAuth
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -63,14 +77,21 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
         contactEmail: _emailCtrl.text.trim(),
         createdBy: _userId!,
         resources: _resources,
-      );
-      // Asociar el usuario admin a la comunidad creada
+      ); // Asociar el usuario admin a la comunidad creada
       if (_userId != null && _userEmail != null && _displayName != null) {
+        // Debug: Verificar datos antes de crear usuario
+        print('DEBUG CreateCommunity - Before createAdminUser:');
+        print('  fullName: "$_fullName"');
+        print('  housing: "$_housing"');
+        print('  housing type: ${_housing.runtimeType}');
+
         await UserService().createAdminUser(
           uid: _userId!,
           email: _userEmail!,
           displayName: _displayName!,
           communityId: community.id,
+          fullName: _fullName,
+          housing: _housing,
         );
         // Navegar a la home
         if (mounted) {

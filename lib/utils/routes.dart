@@ -82,7 +82,10 @@ class AppRoutes {
       case reservations:
         return MaterialPageRoute(builder: (_) => const ReservationListPage());
       case createCommunity:
-        return MaterialPageRoute(builder: (_) => const CreateCommunityPage());
+        return MaterialPageRoute(
+          builder: (_) => const CreateCommunityPage(),
+          settings: settings, // Pasar los settings que incluyen los argumentos
+        );
       case inviteRegister:
         final args = settings.arguments;
         if (args is String) {

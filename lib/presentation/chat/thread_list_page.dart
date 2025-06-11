@@ -184,7 +184,7 @@ class _ThreadListPageState extends State<ThreadListPage> {
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 238, bottom: 16),
+            padding: const EdgeInsets.only(top: 286, bottom: 16),
             child: _buildBody(),
           ),
 

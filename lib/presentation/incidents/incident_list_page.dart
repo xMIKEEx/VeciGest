@@ -38,6 +38,17 @@ class _IncidentListPageState extends State<IncidentListPage> {
     }
   }
 
+  void _navigateToNewIncident() {
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(const NewIncidentPage());
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const NewIncidentPage()),
+      );
+    }
+  }
+
   Color _getStatusColor(String status, ColorScheme colorScheme) {
     switch (status.toLowerCase()) {
       case 'pendiente':
@@ -55,22 +66,21 @@ class _IncidentListPageState extends State<IncidentListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: const Color(
+        0xFFFFF5F5,
+      ), // Light red background like detail page
       body: Stack(
         children: [
           // Main content with padding for floating header
           Padding(
-            padding: const EdgeInsets.only(top: 238),
+            padding: const EdgeInsets.only(top: 286),
             child: _buildIncidentList(),
           ),
           // Floating header
           _buildFloatingHeader(),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(theme),
     );
   }
 
@@ -148,6 +158,37 @@ class _IncidentListPageState extends State<IncidentListPage> {
                           ],
                         ),
                       ),
+                      // Botón de crear incidencia (solo para admins)
+                      if (_isAdmin)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            onPressed: _navigateToNewIncident,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: redColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              minimumSize: const Size(0, 34),
+                            ),
+                            icon: const Icon(
+                              Icons.add_circle_outline,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Nueva Incidencia',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -159,53 +200,27 @@ class _IncidentListPageState extends State<IncidentListPage> {
     );
   }
 
-  Widget? _buildFloatingActionButton(ThemeData theme) {
-    if (!_isAdmin) return null;
-
-    return FloatingActionButton.extended(
-      onPressed: () {
-        if (widget.onNavigate != null) {
-          widget.onNavigate!(const NewIncidentPage());
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NewIncidentPage()),
-          );
-        }
-      },
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      icon: const Icon(Icons.add_circle_outline),
-      label: const Text(
-        'Nueva Incidencia',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      elevation: 8,
-    );
-  }
-
   Widget _buildIncidentList() {
     return StreamBuilder<List<IncidentModel>>(
       stream: _incidentService.getIncidents(),
-      builder: (ctx, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState();
         }
-        if (snap.hasError) {
+        if (snapshot.hasError) {
           return const Center(child: Text('Error al cargar incidencias'));
         }
-        final incidents = snap.data ?? [];
+        final incidents = snapshot.data ?? [];
         if (incidents.isEmpty) {
           return _buildEmptyState();
         }
         return RefreshIndicator(
-          onRefresh: () async {
-            setState(() {});
-          },
+          onRefresh: () async => setState(() {}),
           child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
             itemCount: incidents.length,
-            itemBuilder: (ctx, i) => _buildIncidentCard(incidents[i]),
+            itemBuilder:
+                (context, index) => _buildIncidentCard(incidents[index]),
           ),
         );
       },
@@ -256,7 +271,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
           const SizedBox(height: 8),
           Text(
             _isAdmin
-                ? 'Crea la primera incidencia usando el botón inferior'
+                ? 'Crea la primera incidencia usando el botón superior'
                 : 'Las incidencias aparecerán aquí cuando sean creadas',
             style: TextStyle(
               color: colorScheme.onSurface.withOpacity(0.4),
@@ -272,37 +287,43 @@ class _IncidentListPageState extends State<IncidentListPage> {
   Widget _buildIncidentCard(IncidentModel incident) {
     final theme = Theme.of(context);
     final cardColor = _getStatusColor(incident.status, theme.colorScheme);
-
+    const redColor = Color(0xFFF44336);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
         elevation: 8,
-        shadowColor: cardColor.withOpacity(0.3),
+        shadowColor: Colors.black.withOpacity(0.3), // Changed to black shadow
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: InkWell(
-          onTap: () {
-            if (widget.onNavigate != null) {
-              widget.onNavigate!(IncidentDetailPage(incident: incident));
-            } else {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.incidentDetail,
-                arguments: incident,
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildIncidentHeader(theme, cardColor, incident),
-                const SizedBox(height: 16),
-                _buildIncidentContent(theme, incident),
-                const SizedBox(height: 16),
-                _buildIncidentActionButton(theme, cardColor, incident),
-              ],
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: redColor.withOpacity(0.1), width: 1),
+          ),
+          child: InkWell(
+            onTap: () {
+              if (widget.onNavigate != null) {
+                widget.onNavigate!(IncidentDetailPage(incident: incident));
+              } else {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.incidentDetail,
+                  arguments: incident,
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildIncidentHeader(theme, cardColor, incident),
+                  const SizedBox(height: 16),
+                  _buildIncidentContent(theme, incident),
+                  const SizedBox(height: 16),
+                  _buildIncidentActionButton(theme, cardColor, incident),
+                ],
+              ),
             ),
           ),
         ),
@@ -320,10 +341,14 @@ class _IncidentListPageState extends State<IncidentListPage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: cardColor.withOpacity(0.2),
+            color: const Color(0xFFF44336).withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(Icons.report_problem, color: cardColor, size: 24),
+          child: const Icon(
+            Icons.report_problem,
+            color: Color(0xFFF44336),
+            size: 24,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -464,10 +489,13 @@ class _IncidentListPageState extends State<IncidentListPage> {
       return const SizedBox.shrink();
     }
 
+    const redColor = Color(0xFFF44336);
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () {
+          // Always navigate to incident details, regardless of admin status
           if (widget.onNavigate != null) {
             widget.onNavigate!(IncidentDetailPage(incident: incident));
           } else {
@@ -479,7 +507,7 @@ class _IncidentListPageState extends State<IncidentListPage> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: cardColor,
+          backgroundColor: redColor, // Red button
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16),
