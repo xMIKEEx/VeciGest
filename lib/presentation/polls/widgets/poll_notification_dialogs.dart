@@ -16,7 +16,7 @@ class PollNotificationDialogs {
             ),
             title: Row(
               children: [
-                Icon(Icons.poll, color: Colors.purple[700]),
+                Icon(Icons.poll, color: Colors.purple.shade600),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -63,15 +63,15 @@ class PollNotificationDialogs {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.purple.withOpacity(0.1),
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.info_outline,
                         size: 16,
-                        color: Colors.purple[700],
+                        color: Color(0xFFFF6B35),
                       ),
                       const SizedBox(width: 8),
                       const Expanded(
@@ -101,7 +101,7 @@ class PollNotificationDialogs {
                 icon: const Icon(Icons.poll),
                 label: const Text('Ver encuesta'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple[700],
+                  backgroundColor: Colors.purple.shade600,
                   foregroundColor: Colors.white,
                 ),
               ),

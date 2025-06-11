@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/data/services/invite_service.dart';
+import 'package:vecigest/data/services/property_service.dart';
+import 'package:vecigest/domain/models/property_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -22,6 +24,8 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
   String? _viviendaId; // Renombrado
   String? _communityId;
   String? _inviteId;
+  PropertyModel? _propertyDetails;
+  final PropertyService _propertyService = PropertyService();
 
   @override
   void initState() {
@@ -151,66 +155,71 @@ class _InviteRegisterPageState extends State<InviteRegisterPage> {
       appBar: AppBar(title: const Text('Registro por invitación')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Te vas a registrar como vecino de la comunidad.',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            if (_viviendaId != null && _viviendaId!.isNotEmpty)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               Text(
-                'Vivienda asignada: $_viviendaId',
+                'Te vas a registrar como vecino de la comunidad.',
                 style: const TextStyle(
-                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  fontSize: 18,
                 ),
               ),
-            const SizedBox(height: 16),
-            if (_email == null || _email!.isEmpty) ...[
+              if (_viviendaId != null && _viviendaId!.isNotEmpty)
+                Text(
+                  'Vivienda asignada: $_viviendaId',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+              const SizedBox(height: 16),
+              if (_email == null || _email!.isEmpty) ...[
+                TextField(
+                  onChanged: (value) => _email = value.trim(),
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+              ],
               TextField(
-                onChanged: (value) => _email = value.trim(),
-                decoration: const InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: 'Nombre completo'),
               ),
               const SizedBox(height: 16),
+              TextField(
+                controller: _phoneCtrl,
+                decoration: const InputDecoration(labelText: 'Teléfono'),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordCtrl,
+                decoration: const InputDecoration(labelText: 'Contraseña'),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Confirmar contraseña',
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 24),
+              if (_error != null)
+                Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ElevatedButton(
+                onPressed: _register,
+                child: const Text('Registrarse'),
+              ),
             ],
-            TextField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nombre completo'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneCtrl,
-              decoration: const InputDecoration(labelText: 'Teléfono'),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordCtrl,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Confirmar contraseña',
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            if (_error != null)
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.red, fontSize: 16),
-              ),
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text('Registrarse'),
-            ),
-          ],
+          ),
         ),
       ),
     );

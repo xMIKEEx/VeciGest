@@ -22,21 +22,21 @@ class ChatCard extends StatelessWidget {
     this.isAdmin = false,
     this.onDelete,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const orangeColor = Color(0xFFFF6B35);
     final cardColor = ChatColors.colors[index % ChatColors.colors.length];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
-        elevation: 8,
-        shadowColor: cardColor.withOpacity(0.3),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 3,
+        shadowColor: orangeColor.withOpacity(0.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: InkWell(
           onTap: onCardTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -47,7 +47,7 @@ class ChatCard extends StatelessWidget {
                 _buildContent(theme),
                 if (thread.authorizedPropertyIds.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildPropertyInfo(theme, cardColor),
+                  _buildPropertyInfo(theme, orangeColor),
                 ],
               ],
             ),
@@ -99,10 +99,11 @@ class ChatCard extends StatelessWidget {
   }
 
   Widget _buildUnreadBadge() {
+    const orangeColor = Color(0xFFFF6B35);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.red,
+        color: orangeColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Row(

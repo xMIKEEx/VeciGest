@@ -52,9 +52,7 @@ class SettingsBottomSheet extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, AppRoutes.documents);
               },
-            ),
-
-            // Communities & Properties (Admin only)
+            ), // Communities & Properties (Admin only)
             if (isAdmin)
               ListTile(
                 leading: const Icon(Icons.apartment),
@@ -62,7 +60,7 @@ class SettingsBottomSheet extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(context);
-                  // Navigate to communities management
+                  Navigator.pushNamed(context, AppRoutes.properties);
                 },
               ),
 

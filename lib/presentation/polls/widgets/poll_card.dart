@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/domain/models/poll_option_model.dart';
 import 'package:vecigest/presentation/polls/widgets/mini_progress.dart';
-import 'package:vecigest/presentation/polls/utils/poll_colors.dart';
 import 'package:vecigest/presentation/polls/utils/date_formatter.dart';
 
 class PollCard extends StatelessWidget {
@@ -24,11 +23,11 @@ class PollCard extends StatelessWidget {
     required this.onCardTap,
     required this.onVoteButtonTap,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardColor = PollColors.colors[index % PollColors.colors.length];
+    final purpleColor = Colors.purple.shade600;
+    final cardColor = purpleColor;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -111,10 +110,12 @@ class PollCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
+    final purpleColor = Colors.purple.shade600;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: hasVoted ? Colors.green : Colors.orange,
+        color: hasVoted ? Colors.green : purpleColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

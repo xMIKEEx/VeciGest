@@ -6,21 +6,28 @@ class ChatBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
   const ChatBubble({super.key, required this.message, required this.isMe});
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const orangeColor = Color(0xFFFF6B35);
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
+        ),
         decoration: BoxDecoration(
-          color:
-              isMe
-                  ? theme.colorScheme.primary.withOpacity(0.15)
-                  : Colors.grey[200],
+          color: isMe ? orangeColor : Colors.grey[200],
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment:
@@ -28,14 +35,27 @@ class ChatBubble extends StatelessWidget {
           children: [
             Text(
               message.senderName,
-              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isMe ? Colors.white.withOpacity(0.9) : Colors.grey[600],
+              ),
             ),
-            const SizedBox(height: 2),
-            Text(message.content),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
+            Text(
+              message.content,
+              style: TextStyle(
+                color: isMe ? Colors.white : Colors.black87,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               DateFormat('HH:mm').format(message.timestamp),
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 10,
+                color: isMe ? Colors.white.withOpacity(0.7) : Colors.grey[500],
+              ),
             ),
           ],
         ),

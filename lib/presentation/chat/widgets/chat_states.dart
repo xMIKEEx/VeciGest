@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ChatStates {
+  static const Color orangeColor = Color(0xFFFF6B35);
+
   static Widget buildLoadingState() {
     return Builder(
       builder: (context) {
-        final colorScheme = Theme.of(context).colorScheme;
         return ListView.builder(
           itemCount: 6,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           itemBuilder:
               (_, __) => Shimmer.fromColors(
-                baseColor: colorScheme.surfaceContainerHighest,
-                highlightColor: colorScheme.surface,
+                baseColor: orangeColor.withOpacity(0.1),
+                highlightColor: orangeColor.withOpacity(0.3),
                 child: Container(
                   height: 120,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(20),
+                    color: orangeColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                 ),
               ),
@@ -51,6 +52,13 @@ class ChatStates {
           if (onRetry != null)
             ElevatedButton.icon(
               onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: orangeColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               icon: const Icon(Icons.refresh),
               label: const Text('Reintentar'),
             ),
@@ -86,7 +94,7 @@ class ChatStates {
           const SizedBox(height: 8),
           Text(
             isAdmin
-                ? 'Crea el primer chat grupal usando el botón inferior'
+                ? 'Crea el primer chat grupal usando el botón superior'
                 : 'Los chats aparecerán aquí cuando sean creados',
             style: TextStyle(
               color: colorScheme.onSurface.withOpacity(0.4),
@@ -94,14 +102,7 @@ class ChatStates {
             ),
             textAlign: TextAlign.center,
           ),
-          if (isAdmin && onCreateChat != null) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: onCreateChat,
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('Crear Chat Grupal'),
-            ),
-          ],
+          // Eliminado el botón duplicado del estado empty
         ],
       ),
     );

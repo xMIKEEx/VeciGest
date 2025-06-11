@@ -109,19 +109,23 @@ class PollNotificationHeader extends StatelessWidget {
   Color _getHeaderColor(List<PollModel> polls) {
     if (polls.isEmpty) return Colors.grey;
 
+    final purpleColor = Colors.purple.shade600;
+    final darkerPurple = Colors.purple.shade700;
+    final deepPurple = Colors.purple.shade800;
+
     final now = DateTime.now();
     final hasRecent = polls.any(
       (poll) => now.difference(poll.createdAt).inHours < 1,
     );
 
-    if (hasRecent) return Colors.purple;
+    if (hasRecent) return purpleColor;
 
     final hasToday = polls.any(
       (poll) => now.difference(poll.createdAt).inDays < 1,
     );
 
-    if (hasToday) return Colors.deepPurple;
+    if (hasToday) return darkerPurple;
 
-    return Colors.indigo;
+    return deepPurple;
   }
 }

@@ -26,8 +26,28 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    const orangeColor = Color(0xFFFF6B35);
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.thread.title)),
+      appBar: AppBar(
+        title: Text(widget.thread.title),
+        backgroundColor: orangeColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                orangeColor,
+                orangeColor.withOpacity(0.9),
+                const Color(0xFFE85A2B),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -63,36 +83,67 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           SafeArea(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Escribe un mensaje',
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: orangeColor.withOpacity(0.3)),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Escribe un mensaje...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () {
-                    final text = _controller.text.trim();
-                    if (text.isEmpty) return;
-                    final user = FirebaseAuth.instance.currentUser;
-                    if (user == null) return;
-                    final msg = MessageModel(
-                      id: '', // Firestore auto
-                      threadId: widget.thread.id,
-                      senderId: user.uid,
-                      senderName: user.displayName ?? '',
-                      content: text,
-                      timestamp: DateTime.now(),
-                    );
-                    _chatService.sendMessage(widget.thread.id, msg);
-                    _controller.clear();
-                  },
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: orangeColor,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      onPressed: () {
+                        final text = _controller.text.trim();
+                        if (text.isEmpty) return;
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user == null) return;
+                        final msg = MessageModel(
+                          id: '', // Firestore auto
+                          threadId: widget.thread.id,
+                          senderId: user.uid,
+                          senderName: user.displayName ?? '',
+                          content: text,
+                          timestamp: DateTime.now(),
+                        );
+                        _chatService.sendMessage(widget.thread.id, msg);
+                        _controller.clear();
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -105,17 +156,28 @@ class ChatBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
   const ChatBubble({super.key, required this.message, required this.isMe});
-
   @override
   Widget build(BuildContext context) {
+    const orangeColor = Color(0xFFFF6B35);
+
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
+        ),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue[100] : Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
+          color: isMe ? orangeColor : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment:
@@ -123,14 +185,27 @@ class ChatBubble extends StatelessWidget {
           children: [
             Text(
               message.senderName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: isMe ? Colors.white.withOpacity(0.9) : Colors.grey[600],
+              ),
             ),
-            const SizedBox(height: 2),
-            Text(message.content),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
+            Text(
+              message.content,
+              style: TextStyle(
+                color: isMe ? Colors.white : Colors.black87,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               _formatTime(message.timestamp),
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 10,
+                color: isMe ? Colors.white.withOpacity(0.7) : Colors.grey[500],
+              ),
             ),
           ],
         ),

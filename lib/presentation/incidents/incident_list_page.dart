@@ -59,77 +59,100 @@ class _IncidentListPageState extends State<IncidentListPage> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: NestedScrollView(
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [_buildSliverAppBar(theme)],
-        body: _buildIncidentList(),
+      body: Stack(
+        children: [
+          // Main content with padding for floating header
+          Padding(
+            padding: const EdgeInsets.only(top: 180),
+            child: _buildIncidentList(),
+          ),
+          // Floating header
+          _buildFloatingHeader(),
+        ],
       ),
       floatingActionButton: _buildFloatingActionButton(theme),
     );
   }
 
-  Widget _buildSliverAppBar(ThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 180,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Incidencias',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
+  Widget _buildFloatingHeader() {
+    const redColor = Color(0xFFF44336);
+
+    return Positioned(
+      top: 20,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  redColor,
+                  redColor.withOpacity(0.9),
+                  const Color(0xFFE53935),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Stack(
+              children: [
+                // Elemento decorativo
+                Positioned(
+                  top: 10,
+                  right: -20,
+                  child: Icon(
+                    Icons.report_problem,
+                    size: 80,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+                // Contenido principal
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Incidencias',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 28,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Reporta y gestiona incidencias',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 60,
-                right: -20,
-                child: Icon(
-                  Icons.report_problem,
-                  size: 120,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Positioned(
-                bottom: 60,
-                left: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Gestiona y reporta',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'incidencias comunitarias',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),

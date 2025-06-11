@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/domain/models/poll_model.dart';
 import 'package:vecigest/domain/models/poll_option_model.dart';
-import 'package:vecigest/presentation/polls/utils/poll_colors.dart';
 
 class VotingModal extends StatelessWidget {
   final PollModel poll;
@@ -44,7 +43,7 @@ class VotingModal extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: Colors.purple.shade600.withOpacity(0.3),
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -87,7 +86,7 @@ class VotingModal extends StatelessWidget {
               Icon(
                 Icons.warning_amber_rounded,
                 size: 48,
-                color: Colors.orange[400],
+                color: Colors.purple.shade600,
               ),
               const SizedBox(height: 12),
               Text(
@@ -109,13 +108,10 @@ class VotingModal extends StatelessWidget {
         ),
       );
     }
-
     return Column(
       children:
-          poll.options.asMap().entries.map((entry) {
-            final index = entry.key;
-            final option = entry.value;
-            final color = PollColors.colors[index % PollColors.colors.length];
+          poll.options.map((option) {
+            final purpleColor = Colors.purple.shade600;
 
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -130,12 +126,12 @@ class VotingModal extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      border: Border.all(color: color.withOpacity(0.3)),
+                      border: Border.all(color: purpleColor.withOpacity(0.3)),
                       borderRadius: BorderRadius.circular(16),
-                      color: color.withOpacity(0.1),
+                      color: purpleColor.withOpacity(0.1),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withOpacity(0.1),
+                          color: purpleColor.withOpacity(0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -147,7 +143,7 @@ class VotingModal extends StatelessWidget {
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: color,
+                            color: purpleColor,
                             shape: BoxShape.circle,
                           ),
                         ),

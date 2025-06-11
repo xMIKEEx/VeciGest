@@ -56,9 +56,11 @@ class _IncidentNotificationsWidgetState
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final userRole = await _userRoleService.getUserRoleAndCommunity(user.uid);
-      setState(() {
-        _userCommunityId = userRole?['communityId'] ?? '';
-      });
+      if (mounted) {
+        setState(() {
+          _userCommunityId = userRole?['communityId'] ?? '';
+        });
+      }
     }
   }
 

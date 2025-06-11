@@ -23,7 +23,7 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
   final UserRoleService _userRoleService = UserRoleService();
 
   List<PropertyModel> _availableProperties = [];
-  List<String> _selectedPropertyIds = [];
+  final List<String> _selectedPropertyIds = [];
   bool _isLoading = false;
   bool _isLoadingProperties = true;
   String? _error;
@@ -47,7 +47,6 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Usuario no autenticado');
 
-      // Obtener información de la comunidad del usuario
       final userRole = await _userRoleService.getUserRoleAndCommunity(user.uid);
       if (userRole == null || userRole['role'] != 'admin') {
         throw Exception('Solo los administradores pueden crear grupos de chat');
@@ -58,7 +57,6 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
         throw Exception('No se encontró la comunidad del usuario');
       }
 
-      // Cargar todas las viviendas de la comunidad
       final properties =
           await _propertyService
               .getProperties(communityId: _communityId!)
@@ -111,7 +109,7 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
       );
 
       if (mounted) {
-        Navigator.of(context).pop(true); // Retorna true para indicar éxito
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       setState(() {
@@ -140,78 +138,122 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: NestedScrollView(
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [_buildSliverAppBar(theme)],
-        body:
-            _isLoadingProperties
-                ? const Center(child: CircularProgressIndicator())
-                : _buildForm(theme),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Main content with padding for floating header
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 220,
+              bottom: 16,
+              left: 16,
+              right: 16,
+            ),
+            child:
+                _isLoadingProperties
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildForm(theme),
+          ),
+          // Floating header
+          _buildFloatingHeader(),
+        ],
       ),
     );
   }
 
-  Widget _buildSliverAppBar(ThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 180,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Nuevo Chat Grupal',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
+  Widget _buildFloatingHeader() {
+    const orangeColor = Color(0xFFFF6B35);
+
+    return Positioned(
+      top: 0,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  orangeColor,
+                  orangeColor.withOpacity(0.9),
+                  const Color(0xFFE85A2B),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Stack(
+              children: [
+                // Elemento decorativo
+                Positioned(
+                  top: 10,
+                  right: -20,
+                  child: Icon(
+                    Icons.group_add,
+                    size: 80,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+                // Back button
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                // Contenido principal
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Grupo superior: título y subtítulo
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Título principal
+                            const Text(
+                              'Nuevo Chat Grupal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 26,
+                              ),
+                            ),
+                            // Subtítulo
+                            Text(
+                              'Crea un chat grupal para viviendas específicas',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.85),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 60,
-                right: -20,
-                child: Icon(
-                  Icons.group_add,
-                  size: 120,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Positioned(
-                bottom: 60,
-                left: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Crea un chat grupal',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'para viviendas específicas',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -220,7 +262,6 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
 
   Widget _buildForm(ThemeData theme) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Form(
         key: _formKey,
         child: Column(
@@ -232,7 +273,7 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
             const SizedBox(height: 24),
             if (_error != null) _buildErrorCard(theme),
             _buildCreateButton(theme),
-            const SizedBox(height: 80), // Bottom padding
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -240,6 +281,8 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
   }
 
   Widget _buildBasicInfoCard(ThemeData theme) {
+    const orangeColor = Color(0xFFFF6B35);
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -253,14 +296,10 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: orangeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.edit,
-                    color: theme.colorScheme.primary,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.edit, color: orangeColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -274,11 +313,18 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
             const SizedBox(height: 20),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Nombre del Chat *',
                 hintText: 'Ej: Chat Bloque A, Administración, etc.',
-                prefixIcon: Icon(Icons.title),
-                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.title, color: orangeColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: orangeColor, width: 2),
+                ),
+                labelStyle: TextStyle(color: orangeColor),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -293,11 +339,18 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Descripción (opcional)',
                 hintText: 'Describe el propósito de este chat grupal',
-                prefixIcon: Icon(Icons.description),
-                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.description, color: orangeColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: orangeColor, width: 2),
+                ),
+                labelStyle: TextStyle(color: orangeColor),
               ),
               maxLines: 3,
               maxLength: 200,
@@ -309,6 +362,8 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
   }
 
   Widget _buildPropertySelectionCard(ThemeData theme) {
+    const orangeColor = Color(0xFFFF6B35);
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -322,10 +377,10 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: orangeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.home, color: Colors.blue, size: 20),
+                  child: Icon(Icons.home, color: orangeColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -355,7 +410,7 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
                   decoration: BoxDecoration(
                     color:
                         _selectedPropertyIds.isEmpty
-                            ? Colors.orange
+                            ? orangeColor.withOpacity(0.7)
                             : Colors.green,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -384,7 +439,7 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'No hay viviendas registradas en la comunidad',
+                        'No hay viviendas disponibles en tu comunidad',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ),
@@ -392,9 +447,9 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
                 ),
               )
             else
-              ...(_availableProperties.map(
+              ..._availableProperties.map(
                 (property) => _buildPropertyTile(property, theme),
-              )),
+              ),
           ],
         ),
       ),
@@ -404,49 +459,31 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
   Widget _buildPropertyTile(PropertyModel property, ThemeData theme) {
     final isSelected = _selectedPropertyIds.contains(property.viviendaId);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        border: Border.all(
+    return CheckboxListTile(
+      value: isSelected,
+      onChanged: (_) => _togglePropertySelection(property.viviendaId),
+      title: Text(
+        'Vivienda ${property.viviendaId}',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      secondary: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
           color:
               isSelected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline.withOpacity(0.3),
-          width: isSelected ? 2 : 1,
+                  ? const Color(0xFFFF6B35).withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
         ),
-        borderRadius: BorderRadius.circular(12),
-        color: isSelected ? theme.colorScheme.primary.withOpacity(0.05) : null,
+        child: Icon(
+          Icons.apartment,
+          color: isSelected ? const Color(0xFFFF6B35) : Colors.grey,
+          size: 20,
+        ),
       ),
-      child: CheckboxListTile(
-        value: isSelected,
-        onChanged: (_) => _togglePropertySelection(property.viviendaId),
-        title: Text(
-          'Vivienda ${property.number}',
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        subtitle: Text(
-          'Planta ${property.floor} - Bloque ${property.block}',
-          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
-        ),
-        secondary: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? theme.colorScheme.primary.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.apartment,
-            color: isSelected ? theme.colorScheme.primary : Colors.grey,
-            size: 20,
-          ),
-        ),
-        controlAffinity: ListTileControlAffinity.trailing,
-      ),
+      controlAffinity: ListTileControlAffinity.trailing,
     );
   }
 
@@ -472,12 +509,14 @@ class _NewChatGroupPageState extends State<NewChatGroupPage> {
   }
 
   Widget _buildCreateButton(ThemeData theme) {
+    const orangeColor = Color(0xFFFF6B35);
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: _isLoading ? null : _createChatGroup,
         style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
+          backgroundColor: orangeColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(

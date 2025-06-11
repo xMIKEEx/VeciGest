@@ -35,11 +35,11 @@ class _NewPollPageState extends State<NewPollPage> {
 
   Color _getOptionColor(int index) {
     final colors = [
-      Colors.purple,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.red,
+      Colors.purple.shade600, // Primary purple
+      Colors.purple.shade400, // Lighter purple
+      Colors.purple.shade800, // Darker purple
+      Colors.deepPurple.shade600, // Deep purple variant
+      Colors.purple.shade300, // Very light purple
     ];
     return colors[index % colors.length];
   }
@@ -80,493 +80,385 @@ class _NewPollPageState extends State<NewPollPage> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
+      extendBodyBehindAppBar: true,
       body:
           _loading
               ? const Center(child: CircularProgressIndicator())
-              : CustomScrollView(
-                slivers: [
-                  // Modern SliverAppBar with gradient
-                  SliverAppBar(
-                    expandedHeight: 200,
-                    floating: false,
-                    pinned: true,
-                    elevation: 0,
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: const Text(
-                        'Nueva Encuesta',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              theme.colorScheme.primary,
-                              theme.colorScheme.primary.withOpacity(0.8),
-                              Colors.purple.withOpacity(0.7),
-                            ],
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              top: 60,
-                              right: -20,
-                              child: Icon(
-                                Icons.poll,
-                                size: 120,
-                                color: Colors.white.withOpacity(0.1),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 60,
-                              left: 20,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Crea una nueva encuesta',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    'para la comunidad',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+              : Stack(
+                children: [
+                  // Main content with padding for floating header
+                  Padding(
+                    padding: const EdgeInsets.only(top: 220),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                      child: _buildForm(theme),
+                    ),
+                  ),
+                  // Floating header
+                  _buildFloatingHeader(),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildFloatingHeader() {
+    const purpleColor = Color(0xFF9C27B0);
+
+    return Positioned(
+      top: 0,
+      left: 16,
+      right: 16,
+      child: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.only(top: 16),
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Container(
+              height: 160,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    purpleColor,
+                    purpleColor.withOpacity(0.9),
+                    const Color(0xFF7B1FA2),
+                  ],
+                  stops: const [0.0, 0.7, 1.0],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: purpleColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Elemento decorativo
+                  Positioned(
+                    top: 10,
+                    right: -10,
+                    child: Icon(
+                      Icons.poll,
+                      size: 80,
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                  ),
+                  // Back button
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ),
                   ),
-
-                  // Form content
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Question Card
-                            Card(
-                              elevation: 8,
-                              shadowColor: Colors.purple.withOpacity(0.3),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.purple.withOpacity(0.1),
-                                      Colors.purple.withOpacity(0.05),
-                                    ],
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.purple.withOpacity(
-                                                0.2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(
-                                              Icons.help_outline,
-                                              color: Colors.purple,
-                                              size: 24,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          const Expanded(
-                                            child: Text(
-                                              'Pregunta de la Encuesta',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inter',
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 20),
-                                      TextFormField(
-                                        controller: _questionCtrl,
-                                        decoration: InputDecoration(
-                                          hintText:
-                                              'Escribe tu pregunta aquí...',
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.grey.withOpacity(
-                                                0.3,
-                                              ),
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              15,
-                                            ),
-                                            borderSide: const BorderSide(
-                                              color: Colors.purple,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          contentPadding: const EdgeInsets.all(
-                                            20,
-                                          ),
-                                        ),
-                                        maxLines: 3,
-                                        validator:
-                                            (v) =>
-                                                (v == null || v.trim().isEmpty)
-                                                    ? 'Introduce una pregunta'
-                                                    : null,
-                                      ),
-                                    ],
-                                  ),
+                  // Contenido principal
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Nueva Encuesta',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            // Options Card
-                            Card(
-                              elevation: 8,
-                              shadowColor: Colors.blue.withOpacity(0.3),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.blue.withOpacity(0.1),
-                                      Colors.blue.withOpacity(0.05),
-                                    ],
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.withOpacity(
-                                                0.2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: const Icon(
-                                              Icons.list,
-                                              color: Colors.blue,
-                                              size: 24,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          const Expanded(
-                                            child: Text(
-                                              'Opciones de Respuesta',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inter',
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 6,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange.withOpacity(
-                                                0.1,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                            ),
-                                            child: Text(
-                                              'Mín: 2, Máx: 5',
-                                              style: TextStyle(
-                                                color: Colors.orange[700],
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 20),
-
-                                      // Option fields
-                                      ...List.generate(
-                                        _optionCtrls.length,
-                                        (i) => Container(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 16,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 40,
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                  color: _getOptionColor(
-                                                    i,
-                                                  ).withOpacity(0.2),
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    '${i + 1}',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: _getOptionColor(i),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller: _optionCtrls[i],
-                                                  decoration: InputDecoration(
-                                                    hintText: 'Opción ${i + 1}',
-                                                    filled: true,
-                                                    fillColor: Colors.white,
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                      borderSide:
-                                                          BorderSide.none,
-                                                    ),
-                                                    enabledBorder:
-                                                        OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                12,
-                                                              ),
-                                                          borderSide: BorderSide(
-                                                            color: Colors.grey
-                                                                .withOpacity(
-                                                                  0.3,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                    focusedBorder:
-                                                        OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                12,
-                                                              ),
-                                                          borderSide: BorderSide(
-                                                            color:
-                                                                _getOptionColor(
-                                                                  i,
-                                                                ),
-                                                            width: 2,
-                                                          ),
-                                                        ),
-                                                    contentPadding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 16,
-                                                          vertical: 16,
-                                                        ),
-                                                  ),
-                                                  validator:
-                                                      (v) =>
-                                                          (v == null ||
-                                                                  v
-                                                                      .trim()
-                                                                      .isEmpty)
-                                                              ? 'Introduce una opción'
-                                                              : null,
-                                                ),
-                                              ),
-                                              if (_optionCtrls.length > 2)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: 8,
-                                                  ),
-                                                  child: IconButton(
-                                                    icon: Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            8,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.red
-                                                            .withOpacity(0.1),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
-                                                      ),
-                                                      child: const Icon(
-                                                        Icons.remove,
-                                                        color: Colors.red,
-                                                        size: 20,
-                                                      ),
-                                                    ),
-                                                    onPressed:
-                                                        () => _removeOption(i),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-
-                                      // Add option button
-                                      if (_optionCtrls.length < 5)
-                                        Center(
-                                          child: TextButton.icon(
-                                            onPressed: _addOption,
-                                            icon: Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green.withOpacity(
-                                                  0.1,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: const Icon(
-                                                Icons.add,
-                                                color: Colors.green,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            label: const Text(
-                                              'Añadir Opción',
-                                              style: TextStyle(
-                                                color: Colors.green,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            style: TextButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 20,
-                                                    vertical: 12,
-                                                  ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Crea una encuesta para la comunidad',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
-
-                            const SizedBox(height: 32),
-
-                            // Create button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _submit,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: theme.colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                  elevation: 8,
-                                  shadowColor: theme.colorScheme.primary
-                                      .withOpacity(0.4),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 20,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Icon(Icons.send, size: 20),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Crear Encuesta',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'Inter',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 40),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm(ThemeData theme) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildQuestionCard(theme),
+          const SizedBox(height: 20),
+          _buildOptionsCard(theme),
+          const SizedBox(height: 24),
+          _buildCreateButton(theme),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionCard(ThemeData theme) {
+    const purpleColor = Color(0xFF9C27B0);
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: purpleColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.help_outline, color: purpleColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Pregunta de la Encuesta',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _questionCtrl,
+              decoration: InputDecoration(
+                labelText: 'Pregunta *',
+                hintText: 'Ej: ¿Estás de acuerdo con la nueva normativa?',
+                prefixIcon: Icon(Icons.quiz, color: purpleColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: purpleColor, width: 2),
+                ),
+                labelStyle: TextStyle(color: purpleColor),
+              ),
+              maxLines: 2,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Introduce una pregunta';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionsCard(ThemeData theme) {
+    const purpleColor = Color(0xFF9C27B0);
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: purpleColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.list, color: purpleColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Opciones de Respuesta',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Mínimo 2, máximo 5 opciones',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: purpleColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_optionCtrls.length} opciones',
+                    style: TextStyle(
+                      color: purpleColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ...List.generate(
+              _optionCtrls.length,
+              (i) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _optionCtrls[i],
+                        decoration: InputDecoration(
+                          labelText: 'Opción ${i + 1} *',
+                          hintText: 'Escribe una opción de respuesta',
+                          prefixIcon: Container(
+                            margin: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: _getOptionColor(i).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(
+                              Icons.radio_button_checked,
+                              color: _getOptionColor(i),
+                              size: 16,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: purpleColor,
+                              width: 2,
+                            ),
+                          ),
+                          labelStyle: TextStyle(color: purpleColor),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Introduce una opción';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    if (_optionCtrls.length > 2)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.remove_circle,
+                            color: Colors.red.withOpacity(0.7),
+                          ),
+                          onPressed: () => _removeOption(i),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (_optionCtrls.length < 5)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: TextButton.icon(
+                  onPressed: _addOption,
+                  icon: Icon(Icons.add, color: purpleColor),
+                  label: Text(
+                    'Añadir opción',
+                    style: TextStyle(color: purpleColor),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateButton(ThemeData theme) {
+    const purpleColor = Color(0xFF9C27B0);
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _loading ? null : _submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: purpleColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 4,
+        ),
+        icon:
+            _loading
+                ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+                : const Icon(Icons.poll, size: 20),
+        label: Text(
+          _loading ? 'Creando...' : 'Crear Encuesta',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+      ),
     );
   }
 }

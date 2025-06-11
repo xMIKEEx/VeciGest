@@ -73,106 +73,151 @@ class _ModernPollPageState extends State<ModernPollPage>
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: NestedScrollView(
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [_buildSliverAppBar(theme)],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildPollList('all'),
-            _buildPollList('unvoted'),
-            _buildPollList('voted'),
-          ],
-        ),
+      body: Stack(
+        children: [
+          // Main content with padding for floating header
+          Padding(
+            padding: const EdgeInsets.only(top: 200),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPollList('all'),
+                _buildPollList('unvoted'),
+                _buildPollList('voted'),
+              ],
+            ),
+          ),
+          // Floating header
+          _buildFloatingHeader(),
+        ],
       ),
       floatingActionButton: _buildFloatingActionButton(theme),
     );
   }
 
-  Widget _buildSliverAppBar(ThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 180,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Encuestas',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 60,
-                right: -20,
-                child: Icon(
-                  Icons.poll,
-                  size: 120,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Positioned(
-                bottom: 60,
-                left: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Participa en las decisiones',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      'de tu comunidad',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(48),
+  Widget _buildFloatingHeader() {
+    const purpleColor = Color(0xFF9C27B0);
+
+    return Positioned(
+      top: 0,
+      left: 16,
+      right: 16,
+      child: SafeArea(
         child: Container(
-          color: theme.colorScheme.primary,
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            indicatorWeight: 3,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white.withOpacity(0.7),
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          margin: const EdgeInsets.only(top: 16),
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            tabs: const [
-              Tab(text: 'Todas'),
-              Tab(text: 'Pendientes'),
-              Tab(text: 'Votadas'),
-            ],
+            child: Container(
+              height: 160,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    purpleColor,
+                    purpleColor.withOpacity(0.9),
+                    const Color(0xFF7B1FA2),
+                  ],
+                  stops: const [0.0, 0.7, 1.0],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: purpleColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Elemento decorativo
+                  Positioned(
+                    top: 10,
+                    right: -10,
+                    child: Icon(
+                      Icons.poll,
+                      size: 80,
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                  ),
+                  // Contenido principal
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Encuestas',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Participa en las decisiones de tu comunidad',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // TabBar integrado en el header
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicatorColor: Colors.transparent,
+                            indicatorWeight: 0,
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.white.withOpacity(0.7),
+                            labelStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                            unselectedLabelStyle: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicator: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            tabs: const [
+                              Tab(text: 'Todas'),
+                              Tab(text: 'Pendientes'),
+                              Tab(text: 'Votadas'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -182,18 +227,25 @@ class _ModernPollPageState extends State<ModernPollPage>
   Widget? _buildFloatingActionButton(ThemeData theme) {
     if (!_isAdmin) return null;
 
+    const purpleColor = Color(0xFF9C27B0);
+
     return ScaleTransition(
       scale: _fabScaleAnimation,
       child: FloatingActionButton.extended(
         onPressed: _createNewPoll,
-        backgroundColor: theme.colorScheme.primary,
+        backgroundColor: purpleColor,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_circle_outline),
+        icon: const Icon(Icons.add_circle_outline, size: 22),
         label: const Text(
           'Nueva Encuesta',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            letterSpacing: 0.5,
+          ),
         ),
-        elevation: 8,
+        elevation: 12,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -235,7 +287,7 @@ class _ModernPollPageState extends State<ModernPollPage>
                 setState(() {});
               },
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
                 itemCount: polls.length,
                 itemBuilder:
                     (context, index) =>

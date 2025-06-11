@@ -44,7 +44,7 @@ class ResultsModal extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: Colors.purple.shade600.withOpacity(0.3),
         borderRadius: BorderRadius.circular(2),
       ),
     );

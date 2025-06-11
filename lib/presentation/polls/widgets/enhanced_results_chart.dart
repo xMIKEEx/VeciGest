@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vecigest/domain/models/poll_option_model.dart';
-import 'package:vecigest/presentation/polls/utils/poll_colors.dart';
 
 class EnhancedResultsChart extends StatelessWidget {
   final List<PollOptionModel> options;
@@ -11,6 +10,15 @@ class EnhancedResultsChart extends StatelessWidget {
     required this.options,
     required this.totalVotes,
   });
+  // Purple color variations for different poll options
+  static const List<Color> _purpleColors = [
+    Color(0xFF9C27B0), // Primary purple
+    Color(0xFF7B1FA2), // Darker purple
+    Color(0xFFBA68C8), // Lighter purple
+    Color(0xFF673AB7), // Deep purple
+    Color(0xFFCE93D8), // Very light purple
+    Color(0xFF8E24AA), // Purple variant
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +79,7 @@ class EnhancedResultsChart extends StatelessWidget {
       final index = entry.key;
       final option = entry.value;
       final percentage = option.votes / totalVotes;
-      final color = PollColors.colors[index % PollColors.colors.length];
+      final color = _purpleColors[index % _purpleColors.length];
 
       return SizedBox(
         width: 160 - (index * 20),
@@ -106,7 +114,7 @@ class EnhancedResultsChart extends StatelessWidget {
             final index = entry.key;
             final option = entry.value;
             final percentage = totalVotes > 0 ? option.votes / totalVotes : 0.0;
-            final color = PollColors.colors[index % PollColors.colors.length];
+            final color = _purpleColors[index % _purpleColors.length];
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),

@@ -46,8 +46,8 @@ class PollNotificationItem extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: onTap,
-            splashColor: Colors.purple.withOpacity(0.1),
-            highlightColor: Colors.purple.withOpacity(0.05),
+            splashColor: Colors.purple.shade600.withOpacity(0.1),
+            highlightColor: Colors.purple.shade600.withOpacity(0.05),
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: Column(
@@ -58,13 +58,13 @@ class PollNotificationItem extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.1),
+                          color: Colors.purple.shade600.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
                           Icons.poll,
                           size: 16,
-                          color: Colors.purple[700],
+                          color: Colors.purple.shade600,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -83,7 +83,7 @@ class PollNotificationItem extends StatelessWidget {
                       Icon(
                         Icons.arrow_forward_ios,
                         size: 14,
-                        color: Colors.purple[600],
+                        color: Colors.purple.shade600,
                       ),
                     ],
                   ),

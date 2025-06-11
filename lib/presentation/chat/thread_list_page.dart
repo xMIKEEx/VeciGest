@@ -180,73 +180,121 @@ class _ThreadListPageState extends State<ThreadListPage> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      body: NestedScrollView(
-        headerSliverBuilder:
-            (context, innerBoxIsScrolled) => [_buildSliverAppBar(theme)],
-        body: _buildBody(),
+      body: Stack(
+        children: [
+          // Main content with padding for floating header
+          Padding(
+            padding: const EdgeInsets.only(top: 200, bottom: 16),
+            child: _buildBody(),
+          ),
+
+          // Floating header
+          _buildFloatingHeader(),
+        ],
       ),
-      floatingActionButton: _buildFloatingActionButton(theme),
     );
   }
 
-  Widget _buildSliverAppBar(ThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 180,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      flexibleSpace: FlexibleSpaceBar(
-        title: const Text(
-          'Chats',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        background: Container(
+  Widget _buildFloatingHeader() {
+    const orangeColor = Color(0xFFFF6B35);
+
+    return Positioned(
+      top: 40,
+      left: 16,
+      right: 16,
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: Container(
+          height: 160,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
+                orangeColor,
+                orangeColor.withOpacity(0.9),
+                const Color(0xFFE85A2B),
               ],
             ),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Stack(
             children: [
+              // Elemento decorativo
               Positioned(
-                top: 60,
-                right: -20,
+                top: 10,
+                right: -10,
                 child: Icon(
-                  Icons.chat_bubble,
-                  size: 120,
+                  Icons.chat_bubble_outline,
+                  size: 80,
                   color: Colors.white.withOpacity(0.1),
                 ),
-              ),
-              Positioned(
-                bottom: 60,
-                left: 20,
+              ), // Contenido principal
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Comunícate con',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    // Grupo superior: título y subtítulo
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Título principal
+                          const Text(
+                            'Chats',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 26,
+                            ),
+                          ),
+
+                          // Subtítulo
+                          Text(
+                            'Comunícate con tu comunidad',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.85),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      'tu comunidad',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    // Botón de crear chat (solo para admins)
+                    if (_isAdmin)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton.icon(
+                          onPressed: _navigateToNewChatGroup,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: orangeColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 7,
+                            ),
+                            minimumSize: const Size(0, 34),
+                          ),
+                          icon: const Icon(Icons.group_add, size: 16),
+                          label: const Text(
+                            'Nuevo Chat Grupal',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -254,22 +302,6 @@ class _ThreadListPageState extends State<ThreadListPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget? _buildFloatingActionButton(ThemeData theme) {
-    if (!_isAdmin) return null;
-
-    return FloatingActionButton.extended(
-      onPressed: _navigateToNewChatGroup,
-      backgroundColor: theme.colorScheme.primary,
-      foregroundColor: Colors.white,
-      icon: const Icon(Icons.group_add),
-      label: const Text(
-        'Nuevo Chat Grupal',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      elevation: 8,
     );
   }
 
@@ -298,11 +330,10 @@ class _ThreadListPageState extends State<ThreadListPage> {
             _navigateToNewChatGroup,
           );
         }
-
         return RefreshIndicator(
           onRefresh: _refresh,
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: threads.length,
             itemBuilder:
                 (context, index) =>

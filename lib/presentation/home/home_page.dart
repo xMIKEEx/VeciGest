@@ -1,23 +1,27 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:vecigest/presentation/chat/thread_list_page.dart';
+import 'package:vecigest/presentation/chat/new_chat_group_page.dart';
+import 'package:vecigest/presentation/chat/chat_page.dart';
 import 'package:vecigest/presentation/incidents/incident_list_page.dart';
 import 'package:vecigest/presentation/incidents/new_incident_page.dart';
 import 'package:vecigest/presentation/incidents/incident_detail_page.dart';
 import 'package:vecigest/presentation/polls/modern_poll_page.dart';
+import 'package:vecigest/presentation/polls/new_poll_page.dart';
 import 'package:vecigest/presentation/reservations/reservation_list_page.dart';
 import 'package:vecigest/presentation/events/new_event_page.dart';
 import 'package:vecigest/data/services/user_role_service.dart';
 import 'package:vecigest/data/services/incident_service.dart';
 import 'package:vecigest/data/services/chat_service.dart';
 
-// Import new modular components
+// Import modular components
 import 'widgets/card_wrapper.dart';
 import 'widgets/context_info_card.dart';
 import 'widgets/upcoming_events_card.dart';
 import 'widgets/notifications_card.dart';
 import 'widgets/settings_bottom_sheet.dart';
-import 'widgets/navigation_badge.dart';
+import 'widgets/floating_top_bar.dart';
+import 'widgets/floating_bottom_navigation.dart';
 import 'managers/navigation_manager.dart';
 
 class HomePage extends StatefulWidget {
@@ -31,7 +35,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int _currentIndex = 2;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-
   // Services
   final _userRoleService = UserRoleService();
   final _incidentService = IncidentService();
@@ -87,9 +90,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             // Context Information Section
             CardWrapper(
               child: ContextInfoCard(userRole: _userRole, isAdmin: _isAdmin),
-            ),
-
-            // Upcoming Events Section (Only for Admins)
+            ), // Upcoming Events Section (Only for Admins)
             if (_isAdmin)
               CardWrapper(
                 child: UpcomingEventsCard(
@@ -134,17 +135,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     if (currentStack.isNotEmpty) {
       return currentStack.last;
-    }
-
-    // Default tab content
+    } // Default tab content
     switch (_currentIndex) {
       case 0:
         return IncidentListPage(onNavigate: _pushToCurrentTab);
       case 1:
-        return ReservationListPage(
-          onNavigate: _pushToCurrentTab,
-          onPop: _popFromCurrentTab,
-        );
+        return const ReservationListPage();
       case 2:
         return _buildHomePage();
       case 3:
@@ -174,13 +170,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   bool _shouldHideAppBar() {
     final hasSubPages = _navigationManager.hasSubPages(_currentIndex);
-    if (!hasSubPages) return false;
 
-    final topPage = _navigationManager.getTopPageForTab(_currentIndex);
-    if (topPage == null) return false;
+    // Hide floating app bar for sub-pages that have their own AppBar
+    if (hasSubPages) {
+      final topPage = _navigationManager.getTopPageForTab(_currentIndex);
+      if (topPage == null) {
+        return false; // Check if the current page is one that has its own SliverAppBar or floating header
+      }
+      return topPage is NewIncidentPage ||
+          topPage is IncidentDetailPage ||
+          topPage is NewChatGroupPage ||
+          topPage is ChatPage ||
+          topPage is NewPollPage;
+    }
 
-    // Check if the current page is one that has its own SliverAppBar
-    return topPage is NewIncidentPage || topPage is IncidentDetailPage;
+    // Hide floating app bar for all tabs except Home (index 2)
+    return _currentIndex != 2;
   }
 
   @override
@@ -204,93 +209,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
       },
       child: Scaffold(
-        appBar:
-            shouldHideAppBar
-                ? null
-                : AppBar(
-                  title: const Text(
-                    'VeciGest',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  automaticallyImplyLeading: hasSubPages,
-                  leading:
-                      hasSubPages
-                          ? IconButton(
-                            icon: const Icon(Icons.arrow_back),
-                            onPressed: _popFromCurrentTab,
-                          )
-                          : null,
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      onPressed: _openSettings,
-                      tooltip: 'Ajustes',
-                    ),
-                  ],
-                ),
-        body: FadeTransition(opacity: _fadeAnimation, child: _buildBody()),
-        bottomNavigationBar: Theme(
-          data: Theme.of(context).copyWith(
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _animationController.reset();
-              _animationController.forward();
-            },
-            selectedItemColor: Theme.of(context).colorScheme.primary,
-            unselectedItemColor: Theme.of(
-              context,
-            ).colorScheme.onSurface.withOpacity(0.6),
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Inter',
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: Stack(
+          children: [
+            // Main content with conditional padding for floating bars
+            Padding(
+              padding: EdgeInsets.only(
+                top: shouldHideAppBar ? 0 : 140,
+                bottom: 85, // Always leave space for bottom navigation
+              ),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: _buildBody(),
+              ),
             ),
-            unselectedLabelStyle: const TextStyle(fontFamily: 'Inter'),
-            items: [
-              BottomNavigationBarItem(
-                icon: NavigationBadge(
-                  iconData: Icons.report_problem,
-                  stream: _incidentService.getIncidents(),
-                  countExtractor:
-                      (incidents) =>
-                          incidents.where((i) => i.status == 'open').length,
-                  badgeColor: Colors.red,
-                ),
-                label: 'Incidencias',
+
+            // Floating top bar - only visible in Home tab
+            if (!shouldHideAppBar)
+              FloatingTopBar(
+                hasSubPages: hasSubPages,
+                onBackPressed: _popFromCurrentTab,
+                onSettingsPressed: _openSettings,
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.event_available),
-                label: 'Reservas',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: NavigationBadge(
-                  iconData: Icons.chat_bubble,
-                  stream: _chatService.getThreads(),
-                  countExtractor: (threads) => threads.length,
-                  badgeColor: Colors.blue,
-                ),
-                label: 'Chat',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.poll),
-                label: 'Encuestas',
-              ),
-            ],
-          ),
+
+            // Floating bottom navigation - always visible
+            FloatingBottomNavigation(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _animationController.reset();
+                _animationController.forward();
+              },
+              incidentService: _incidentService,
+              chatService: _chatService,
+            ),
+          ],
         ),
       ),
     );
