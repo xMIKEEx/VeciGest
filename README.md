@@ -58,6 +58,7 @@ VeciGest es una aplicación móvil multiplataforma desarrollada en Flutter que p
 ### 🎨 Experiencia de Usuario
 - **Diseño Material 3** moderno y limpio
 - **Modo oscuro/claro** configurable
+- **Avatar de usuario con foto** si está disponible, mostrando la inicial del nombre en caso contrario
 - **Interfaz intuitiva** y responsive
 - **Navegación fluida** entre secciones
 - **Feedback visual** con shimmer effects
